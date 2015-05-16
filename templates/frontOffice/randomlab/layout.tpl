@@ -103,7 +103,32 @@
                 </h1>
                 <h1 class="title titlerow"><a href="{navigate to="index"}">{$store_name}</a></h1>
             </div>
-            {hook name="main.navbar-primary"}
+                <nav class="navbar navbar-default nav-main" role="navigation" itemscope itemtype="http://schema.org/SiteNavigationElement">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-primary">
+                                <span class="sr-only">{intl l="Toggle navigation"}</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                            <a class="navbar-brand" href="{navigate to="index"}">{intl l="Categories"}</a>
+                        </div>
+                        <div class="collapse navbar-collapse" id="navbar-primary">
+                            <ul class="nav navbar-nav navbar-categories">
+                                <li><a href="{navigate to="index"}" class="home">{intl l="Home"}</a></li>
+                                {ifloop rel="blog.articles"}
+                                    {loop type="content" name="blog.articles" folder="1"}
+                                    {/loop}
+                                    <li><a href="/blog" class="blog">{intl l="Blog"}</a></li>
+                                {/ifloop}
+                                {loop type="category" name="category.navigation" parent="0"}
+                                <li><a href="{$URL}">{$TITLE}</a></li>
+                               {/loop}
+                           </ul>
+                       </div>
+                   </div>
+               </nav>
         </div>
     </header><!-- /.header -->
 
