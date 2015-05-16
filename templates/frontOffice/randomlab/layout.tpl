@@ -47,7 +47,6 @@
 
     {* Favicon *}
     {images file='assets/img/favicon.ico'}<link rel="shortcut icon" type="image/x-icon" href="{$asset_url}">{/images}
-    {images file='assets/img/favicon.png'}<link rel="icon" type="image/png" href="{$asset_url}" />{/images}
 
     {* Feeds *}
     <link rel="alternate" type="application/rss+xml" title="{intl l='All products'}" href="{url path="/feed/catalog/{lang attr="locale"}"}" />
