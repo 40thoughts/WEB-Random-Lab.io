@@ -4,3 +4,6 @@
 [submodule "local/modules/Paypal"]
 	path = local/modules/Paypal
 	url = https://github.com/thelia-modules/Paypal.git
+[submodule "local/modules/FreeShipping"]
+	path = local/modules/FreeShipping
+	url = https://github.com/thelia-modules/FreeShipping.git
