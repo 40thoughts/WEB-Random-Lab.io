@@ -10302,7 +10302,8 @@ select[multiple]#form-forgotpassword .form-control {
     display: block;
     opacity: 0;
     filter: alpha(opacity=0);
-    overflow: visible;
+    overflow: hidden;
+    border-radius: 10px;
     position: absolute;
     top: 0;
     left: 0;
@@ -10423,6 +10424,7 @@ select[multiple]#form-forgotpassword .form-control {
   max-width: 100%;
   height: auto;
   width: 100%;
+  border-radius: 10px;
 }
 .grid .products-content > ul .item .product-info .name {
   margin: 4px 0;
@@ -10486,7 +10488,8 @@ select[multiple]#form-forgotpassword .form-control {
     display: block;
     opacity: 0;
     filter: alpha(opacity=0);
-    overflow: visible;
+    overflow: hidden;
+    border-radius: 10px;
     position: absolute;
     top: 0;
     left: 0;
@@ -10580,7 +10583,8 @@ select[multiple]#form-forgotpassword .form-control {
     display: block;
     opacity: 0;
     filter: alpha(opacity=0);
-    overflow: visible;
+    overflow: hidden;
+    border-radius: 10px;
     position: absolute;
     top: 0;
     left: 0;
@@ -10709,6 +10713,7 @@ select[multiple]#form-forgotpassword .form-control {
   max-width: 100%;
   height: auto;
   width: 100%;
+  border-radius: 10px;
 }
 .products-grid .item .product-info .name {
   margin: 4px 0;

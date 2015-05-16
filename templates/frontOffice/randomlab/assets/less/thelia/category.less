@@ -38,7 +38,8 @@
                 background-color: rgba(red(@brand-primary), green(@brand-primary), blue(@brand-primary), .4);
                 display: block;
                 .opacity(0);
-                overflow: visible;
+                overflow: hidden;
+                border-radius: 10px;
                 position: absolute;
                 top: 0; left: 0;
                 visibility: hidden;
@@ -73,7 +74,7 @@
         margin-bottom: @line-height-computed;
 
         .product-image {
-            > img  { .img-responsive(); width: 100%; }
+            > img  { .img-responsive(); width: 100%; border-radius: 10px; }
             > .mask {}
         }
 
