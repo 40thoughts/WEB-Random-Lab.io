@@ -192,6 +192,7 @@ return array(
     'Send new password again' => 'Renvoyer un mot de passe',
     'Send us a message' => 'Envoyez nous un message.',
     'Shipping Tax' => 'Frais de livraison',
+    'Shop' => 'Boutique',
     'Show' => 'Voir',
     'Sign in' => 'Se connecter',
     'Skip to content' => 'Aller au contenu',
