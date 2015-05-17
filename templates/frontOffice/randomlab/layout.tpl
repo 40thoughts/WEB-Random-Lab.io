@@ -117,11 +117,12 @@
                         <div class="collapse navbar-collapse" id="navbar-primary">
                             <ul class="nav navbar-nav navbar-categories">
                                 <li><a href="{navigate to="index"}" class="home">{intl l="Home"}</a></li>
-                                {ifloop rel="blog.articles"}
-                                    {loop type="content" name="blog.articles" folder="1"}
-                                    {/loop}
+                                {if {config key="news_folder"} ne "0" && {config key="news_folder"} ne ""}
+                                    <li><a href="/news" class="blog">{intl l="News"}</a></li>
+                                {/if}
+                                {if {config key="blog_folder"} ne "0" && {config key="blog_folder"} ne ""}
                                     <li><a href="/blog" class="blog">{intl l="Blog"}</a></li>
-                                {/ifloop}
+                                {/if}
                                 {loop type="category" name="category.navigation" parent="0"}
                                 <li><a href="{$URL}">{$TITLE}</a></li>
                                {/loop}
