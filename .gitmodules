@@ -10,3 +10,6 @@
 [submodule "local/modules/Comment"]
 	path = local/modules/Comment
 	url = https://github.com/thelia-modules/Comment.git
+[submodule "local/modules/WelcomeNotification"]
+	path = local/modules/WelcomeNotification
+	url = https://github.com/zzuutt/WelcomeNotification.git
