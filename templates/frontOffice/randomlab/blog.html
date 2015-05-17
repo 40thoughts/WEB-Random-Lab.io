@@ -41,7 +41,7 @@
 
 {* Content *}
 {block name="main-content"}
-{assign var="$folder_id" value="1"}
+{assign var="$folder_id" value="{config key="blog_folder"}"}
     {hook name="folder.top" folder="$folder_id"}
     <div class="main">
         {hook name="folder.main-top" folder="$folder_id"}
