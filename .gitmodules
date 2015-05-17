@@ -7,3 +7,6 @@
 [submodule "local/modules/FreeShipping"]
 	path = local/modules/FreeShipping
 	url = https://github.com/thelia-modules/FreeShipping.git
+[submodule "local/modules/Comment"]
+	path = local/modules/Comment
+	url = https://github.com/thelia-modules/Comment.git
