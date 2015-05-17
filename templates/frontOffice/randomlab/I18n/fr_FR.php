@@ -107,6 +107,7 @@ return array(
     'Name ascending' => 'Nom croissant',
     'Name descending' => 'Nom décroissant',
     'Need help ?' => 'Besoin d\'aide ?',
+    'News' => 'Actu\'',
     'Newsletter' => 'Newsletter',
     'Newsletter Subscription' => 'Inscription à la newsletter',
     'Next' => 'Suivant',
