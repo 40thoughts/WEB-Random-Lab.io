@@ -1,3 +1,5 @@
+{assign var="news_folder" value="{config key="news_folder"}"}
+{assign var="blog_folder" value="{config key="blog_folder"}"}
 <nav class="navbar navbar-default nav-main" role="navigation" itemscope itemtype="http://schema.org/SiteNavigationElement">
     <div class="container-fluid">
         <div class="navbar-header">
@@ -12,16 +14,32 @@
         <div class="collapse navbar-collapse" id="navbar-primary">
             <ul class="nav navbar-nav navbar-categories">
                 <li><a href="{navigate to="index"}" class="home">{intl l="Home"}</a></li>
-                {if {config key="news_folder"} ne "0" && {config key="news_folder"} ne ""}
-                <li><a href="/news" class="blog">{intl l="News"}</a></li>
+                {if $news_folder ne "0" && $news_folder ne ""}
+                    {ifloop rel="news.navigation"}
+                        {loop type="folder" name="news.navigation" id="$news_folder"}
+                            {ifloop rel="news_content"}
+                                {loop name="news_content" type="content" folder="$news_folder"}
+                                {/loop}
+                            {/ifloop}
+                            <li><a href="{$URL nofilter}">{intl l="News"}</a></li>
+                        {/loop}
+                    {/ifloop}
                 {/if}
-                {if {config key="blog_folder"} ne "0" && {config key="blog_folder"} ne ""}
-                <li><a href="/blog" class="blog">{intl l="Blog"}</a></li>
+                {if $blog_folder ne "0" && $blog_folder ne ""}
+                    {ifloop rel="blog.navigation"}
+                        {loop type="folder" name="blog.navigation" id="$blog_folder"}
+                            {ifloop rel="blog_content"}
+                                {loop name="blog_content" type="content" folder="$blog_folder"}
+                                {/loop}
+                            {/ifloop}
+                            <li><a href="{$URL nofilter}">{intl l="Blog"}</a></li>
+                        {/loop}
+                    {/ifloop}
                 {/if}
                 {ifloop rel="category.navigation"}
                     {loop type="category" name="category.navigation" parent="0"}
                     {/loop}
-                <li><a href="/category">{intl l="Shop"}</a></li>
+                <li><a href="{url path="/?view=category"}">{intl l="Shop"}</a></li>
                 {/ifloop}
             </ul>
         </div>
