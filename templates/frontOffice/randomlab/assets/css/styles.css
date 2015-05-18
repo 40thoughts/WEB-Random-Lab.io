@@ -7738,7 +7738,7 @@ a .icon-flip-vertical:before {
 }
 .loader {
   position: fixed;
-  background: #ffffff url(../img/ajax-loader.gif) no-repeat center center;
+  background: #ffffff url(../img/loader.gif) no-repeat center center;
   background-color: rgba(255, 255, 255, 0.5);
   display: none;
   left: 0;
