@@ -20,8 +20,8 @@
                             {ifloop rel="news_content"}
                                 {loop name="news_content" type="content" folder="$news_folder"}
                                 {/loop}
+                                <li><a href="{$URL nofilter}">{intl l="News"}</a></li>
                             {/ifloop}
-                            <li><a href="{$URL nofilter}">{intl l="News"}</a></li>
                         {/loop}
                     {/ifloop}
                 {/if}
@@ -31,8 +31,8 @@
                             {ifloop rel="blog_content"}
                                 {loop name="blog_content" type="content" folder="$blog_folder"}
                                 {/loop}
+                                <li><a href="{$URL nofilter}">{intl l="Blog"}</a></li>
                             {/ifloop}
-                            <li><a href="{$URL nofilter}">{intl l="Blog"}</a></li>
                         {/loop}
                     {/ifloop}
                 {/if}
