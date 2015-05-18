@@ -8655,6 +8655,7 @@ fieldset[disabled] .checkout-progress .btn-step.active {
   margin-left: -15px;
   margin-right: -15px;
   margin-bottom: 0;
+  border-radius: 4px 4px 0 0;
 }
 .breadcrumb > li + li:before {
   font-family: FontAwesome;
