@@ -14,6 +14,8 @@
     {loop name="category.seo.title" type="category" id=$category_id limit="1"}
         {$page_title = {$META_TITLE}}
     {/loop}
+{else}
+    {$page_title = "{intl l="Shop"}"}
 {/if}
 {/block}
 
