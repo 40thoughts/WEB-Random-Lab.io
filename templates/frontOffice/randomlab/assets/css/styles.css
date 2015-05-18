@@ -7760,8 +7760,15 @@ a .icon-flip-vertical:before {
 .thumbnail.active {
   border-color: #333333;
 }
+ul.date {
+  list-style: none;
+  font-size: 0.8em;
+}
 .main {
   margin-bottom: 20px;
+  padding-top: 15px;
+  padding-bottom: 5px;
+  background: #ffffff;
 }
 .layout-col-1,
 .layout-col-2-left,
