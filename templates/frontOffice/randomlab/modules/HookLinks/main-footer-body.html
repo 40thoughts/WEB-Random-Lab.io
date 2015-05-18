@@ -1,7 +1,28 @@
+{assign var="news_folder" value="{config key="news_folder"}"}
+{assign var="blog_folder" value="{config key="blog_folder"}"}
 <ul>
-    {loop name="footer_links" type="content" folder="{config key="blog_folder"}"}
-    <li><a href="{$URL}">{$TITLE}</a></li>
-    {/loop}
+    {if $news_folder ne "0" && $news_folder ne ""}
+        {ifloop rel="news.navigation"}
+            {loop type="folder" name="news.navigation" id="$news_folder"}
+                {ifloop rel="news_content"}
+                    {loop name="news_content" type="content" folder="$news_folder"}
+                    {/loop}
+                    <li><a href="{$URL nofilter}">{intl l="News"}</a></li>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
+    {if $blog_folder ne "0" && $blog_folder ne ""}
+        {ifloop rel="blog.navigation"}
+            {loop type="folder" name="blog.navigation" id="$blog_folder"}
+                {ifloop rel="blog_content"}
+                    {loop name="blog_content" type="content" folder="$blog_folder"}
+                    {/loop}
+                    <li><a href="{$URL nofilter}">{intl l="Blog"}</a></li>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
     {loop type="auth" name="customer_is_logged" role="CUSTOMER"}
     <li><a href="{url path="/logout"}" class="logout">{intl l="Log out!" d="hooklinks.fo.default"}</a></li>
     <li><a href="{url path="/account"}" class="account">{intl l="My Account" d="hooklinks.fo.default"}</a></li>
