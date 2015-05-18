@@ -13,14 +13,14 @@
         </div>
         <div class="collapse navbar-collapse" id="navbar-primary">
             <ul class="nav navbar-nav navbar-categories">
-                <li><a href="{navigate to="index"}" class="home">{intl l="Home"}</a></li>
+                <li><a href="{navigate to="index"}" class="home"><i class="fa fa-home fa-fw fa-lg"></i>&nbsp;{intl l="Home"}</a></li>
                 {if $news_folder ne "0" && $news_folder ne ""}
                     {ifloop rel="news.navigation"}
                         {loop type="folder" name="news.navigation" id="$news_folder"}
                             {ifloop rel="news_content"}
                                 {loop name="news_content" type="content" folder="$news_folder"}
                                 {/loop}
-                                <li><a href="{$URL nofilter}">{intl l="News"}</a></li>
+                                <li><a href="{$URL nofilter}"><i class="fa fa-newspaper-o fa-fw fa-lg"></i>&nbsp;{intl l="News"}</a></li>
                             {/ifloop}
                         {/loop}
                     {/ifloop}
@@ -31,7 +31,7 @@
                             {ifloop rel="blog_content"}
                                 {loop name="blog_content" type="content" folder="$blog_folder"}
                                 {/loop}
-                                <li><a href="{$URL nofilter}">{intl l="Blog"}</a></li>
+                                <li><a href="{$URL nofilter}"><i class="fa fa-pencil-square-o fa-fw fa-lg"></i>&nbsp;{intl l="Blog"}</a></li>
                             {/ifloop}
                         {/loop}
                     {/ifloop}
@@ -39,7 +39,7 @@
                 {ifloop rel="category.navigation"}
                     {loop type="category" name="category.navigation" parent="0"}
                     {/loop}
-                <li><a href="{url path="/?view=category"}">{intl l="Shop"}</a></li>
+                <li><a href="{url path="/?view=category"}"><i class="fa fa-shopping-cart fa-fw fa-lg"></i>&nbsp;{intl l="Shop"}</a></li>
                 {/ifloop}
             </ul>
         </div>
