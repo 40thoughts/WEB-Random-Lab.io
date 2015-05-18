@@ -74,7 +74,15 @@
                     <small class="postscriptum">
                         {$POSTSCRIPTUM}
                    </small>
-                {/if}                
+                {/if}
+
+                <ul class="date pull-right">
+                    <li>{intl l='Written on %date_create' date_create="{format_date date=$CREATE_DATE}"}</li>
+                    {if $UPDATE_DATE ne $CREATE_DATE}
+                    <li>{intl l='Updated on %date_change' date_change="{format_date date=$UPDATE_DATE}"}</li>
+                    {/if}
+                </ul>
+ 
             {/loop}
 
             {hook name="content.content-bottom" content="$content_id"}
