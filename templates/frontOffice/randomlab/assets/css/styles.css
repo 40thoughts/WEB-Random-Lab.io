@@ -7772,6 +7772,7 @@ ul.date {
   background: #ffffff;
   margin-right: -15px;
   margin-left: -15px;
+  border-radius: 0 0 4px 4px;
 }
 .layout-col-1,
 .layout-col-2-left,
