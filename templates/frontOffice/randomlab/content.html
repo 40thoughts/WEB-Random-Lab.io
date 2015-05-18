@@ -41,7 +41,7 @@
 {block name="main-content"}
 {if $content_id}
     {hook name="content.top" content="$content_id"}
-    <div class="main layout-col-2-left">
+    <div class="main layout-col-2-right">
         {hook name="content.main-top" content="$content_id"}
         <article id="content-main" class="col-main" role="main" aria-labelledby="main-label">
 
@@ -89,7 +89,7 @@
 
         </article>
 
-        <aside class="col-left" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
+        <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
             {include file="includes/asides/articles.html"}
         </aside>
 

@@ -2,6 +2,9 @@
 // Thelia: Breadcrumb
 .breadcrumb {
     padding: @breadcrumb-padding;
+    margin-left: @blocks-side-margin;
+    margin-right: @blocks-side-margin;
+    margin-bottom: 0;
     > li {
        &+li:before {
            .icon(@angle-right); // Unicode space added since inline-block means non-collapsing white-space

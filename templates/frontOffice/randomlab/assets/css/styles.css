@@ -7761,14 +7761,17 @@ a .icon-flip-vertical:before {
   border-color: #333333;
 }
 ul.date {
+  text-align: right;
   list-style: none;
   font-size: 0.8em;
 }
 .main {
   margin-bottom: 20px;
-  padding-top: 15px;
+  padding: 15px;
   padding-bottom: 5px;
   background: #ffffff;
+  margin-right: -15px;
+  margin-left: -15px;
 }
 .layout-col-1,
 .layout-col-2-left,
@@ -7807,11 +7810,17 @@ ul.date {
     left: 25%;
   }
 }
+@media (min-width: 768px) {
+  .layout-col-2-left .col-main {
+    padding-right: 0;
+  }
+}
 .layout-col-2-left .col-left {
   position: relative;
   min-height: 1px;
   padding-left: 15px;
   padding-right: 15px;
+  padding-top: 40px;
 }
 @media (min-width: 992px) {
   .layout-col-2-left .col-left {
@@ -7822,6 +7831,11 @@ ul.date {
 @media (min-width: 992px) {
   .layout-col-2-left .col-left {
     right: 75%;
+  }
+}
+@media (min-width: 768px) {
+  .layout-col-2-left .col-left {
+    padding: 0;
   }
 }
 .layout-col-2-right .col-main {
@@ -7836,16 +7850,27 @@ ul.date {
     width: 75%;
   }
 }
+@media (min-width: 768px) {
+  .layout-col-2-right .col-main {
+    padding: 0;
+  }
+}
 .layout-col-2-right .col-right {
   position: relative;
   min-height: 1px;
   padding-left: 15px;
   padding-right: 15px;
+  padding-top: 40px;
 }
 @media (min-width: 992px) {
   .layout-col-2-right .col-right {
     float: left;
     width: 25%;
+  }
+}
+@media (min-width: 768px) {
+  .layout-col-2-right .col-right {
+    padding: 0;
   }
 }
 ul.list-info,
@@ -8627,6 +8652,9 @@ fieldset[disabled] .checkout-progress .btn-step.active {
 }
 .breadcrumb {
   padding: 8px 15px;
+  margin-left: -15px;
+  margin-right: -15px;
+  margin-bottom: 0;
 }
 .breadcrumb > li + li:before {
   font-family: FontAwesome;
@@ -11108,6 +11136,7 @@ select[multiple].option .option-content .form-control {
   margin-left: -15px;
   margin-right: -15px;
   margin-left: 0;
+  margin-right: 0;
   background-color: #f5f5f5;
   border-radius: 4px;
 }
@@ -11336,6 +11365,7 @@ select[multiple].option .option-content .form-control {
   margin-left: -15px;
   margin-right: -15px;
   margin-left: 0;
+  margin-right: 0;
   background-color: #f5f5f5;
   border-radius: 4px;
 }

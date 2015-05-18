@@ -33,12 +33,13 @@
 
 // Dates list
 ul.date {
+    text-align: right;
     list-style: none;
     font-size: 0.8em;
 }
 
 // Layout
-.main { margin-bottom: @line-height-computed; padding-top: 15px; padding-bottom: 5px; background: @content-bg; }
+.main { margin-bottom: @line-height-computed; padding: 15px; padding-bottom: 5px; background: @content-bg; margin-right: @blocks-side-margin; margin-left: @blocks-side-margin;}
 .layout-col-1,
 .layout-col-2-left,
 .layout-col-2-right {
@@ -53,18 +54,32 @@ ul.date {
     .col-main {
         .make-md-column(9);
         .make-md-column-push(3);
+        @media (min-width: @screen-tablet) {
+            padding-right: 0;
+        }
     }
     .col-left {
         .make-md-column(3);
         .make-md-column-pull(9);
+        padding-top: 40px;
+        @media (min-width: @screen-tablet) {
+            padding: 0;
+        }
     }
 }
 .layout-col-2-right {
     .col-main {
         .make-md-column(9);
+        @media (min-width: @screen-tablet) {
+            padding: 0;
+        }
     }
     .col-right {
         .make-md-column(3);
+        padding-top: 40px;
+        @media (min-width: @screen-tablet) {
+            padding: 0;
+        }
     }
 }
 
