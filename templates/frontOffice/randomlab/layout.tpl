@@ -120,37 +120,6 @@
 </main><!-- /.main-container -->
 
 <section class="footer-container" itemscope itemtype="http://schema.org/WPFooter">
-
-    {ifhook rel="main.footer-top"}
-    <section class="footer-block">
-        <div class="container">
-            <div class="blocks block-col-3">
-                {hook name="main.footer-top"}
-            </div>
-        </div>
-    </section>
-    {/ifhook}
-    {elsehook rel="main.footer-top"}
-    <section class="footer-banner">
-        <div class="container">
-            <div class="banner banner-col-3">
-                <div class="col">
-                    <span class="icon-truck icon-flip-horizontal"></span>
-                    {intl l="Free shipping"} <small>{intl l="Orders over $50"}</small>
-                </div>
-                <div class="col">
-                    <span class="icon-credit-card"></span>
-                    {intl l="Secure payment"} <small>{intl l="Multi-payment platform"}</small>
-                </div>
-                <div class="col">
-                    <span class="icon-info"></span>
-                    {intl l="Need help ?"} <small>{intl l="Questions ? See our F.A.Q."}</small>
-                </div>
-            </div>
-        </div>
-    </section><!-- /.footer-banner -->
-    {/elsehook}
-
     {ifhook rel="main.footer-body"}
     <section class="footer-block">
         <div class="container">
