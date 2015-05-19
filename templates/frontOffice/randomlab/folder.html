@@ -48,7 +48,7 @@
 
 {assign var="$folder_id" value="{folder attr="id"}"}
     {hook name="folder.top" folder="$folder_id"}
-    <div class="main">
+    <div class="main layout-col-2-right">
         {hook name="folder.main-top" folder="$folder_id"}
         <div class="col-main contents-list" role="main" aria-labelledby="main-label">
 
@@ -108,12 +108,11 @@
                                 <li class="item">
                                     <article>
                                         {ifloop rel="content_thumbnail"}
-                                        <a href="{$URL nofilter}" tabindex="-1" class="content-image">
-                                            {loop name="content_thumbnail" type="image" width="369" height="247" content=$ID limit="1"}
-                                                <img src="{$IMAGE_URL nofilter}" alt="{$TITLE}">
+                                            {loop name="content_thumbnail" type="image" width="1000" content=$ID limit="1"}
+                                            <a href="{$URL nofilter}" tabindex="-1" class="content-image" style="background-image: url({$IMAGE_URL nofilter});">
+                                                <span class="mask"></span>
+                                            </a>
                                             {/loop}
-                                            <span class="mask"></span>
-                                        </a>
                                         {/ifloop}
 
                                         <div class="content-info">
@@ -121,7 +120,7 @@
 
                                             {if $CHAPO}
                                             <div class="short-description">
-                                               {$CHAPO}
+                                               {$CHAPO nofilter}
                                             </div>
                                             {/if}
                                         </div>
@@ -215,6 +214,11 @@
         {hook name="folder.content-bottom" folder="$folder_id"}
 
         </div>
+        <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
+            {include file="includes/asides/news.html"}
+            {include file="includes/asides/blog.html"}
+        </aside>
+
         {hook name="folder.main-bottom" folder="$folder_id"}
     </div>
     {hook name="folder.bottom" folder="$folder_id"}
