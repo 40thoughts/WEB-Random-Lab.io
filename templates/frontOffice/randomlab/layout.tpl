@@ -125,7 +125,7 @@
     {ifhook rel="main.footer-body"}
     <section class="footer-block">
         <div class="container">
-            <div class="blocks block-col-4">
+            <div class="blocks block-col-2">
                 {hookblock name="main.footer-body"  fields="id,class,title,content"}
                     {forhook rel="main.footer-body"}
                     <div class="col">
