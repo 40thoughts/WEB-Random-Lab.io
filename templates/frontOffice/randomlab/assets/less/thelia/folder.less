@@ -85,15 +85,21 @@
             border-radius: 4px;
 
             .content-image {
-                .make-sm-column(2);
-                margin-bottom: 15px; padding: 0; padding-top: 10px; padding-left: 10px;
+                display: block;
+                margin: 10px;
+                margin-bottom: 0;
+                height: 200px;
+                  background-position: center center; 
+                  background-repeat: no-repeat;
+                  background-size: 100%;
                 > img { .img-responsive(); width: 100%; }
                 > .mask {}
             }
 
             .content-info {
-                .make-sm-column(10);
-                .name { margin: 10px; padding: 10px; background-color: #e4e4e4; border-radius: 4px; }
+                padding: 10px;
+                padding-top: 0;
+                .name { margin: 0; margin-bottom: 10px; padding: 10px; background-color: #e4e4e4; }
                 .description {}
                 .short-description {}
             }

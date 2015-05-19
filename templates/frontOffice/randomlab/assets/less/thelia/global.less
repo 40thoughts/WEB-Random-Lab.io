@@ -39,7 +39,19 @@ ul.date {
 }
 
 // Layout
-.main { margin-bottom: @line-height-computed; padding: 15px; padding-bottom: 5px; background: @content-bg; margin-right: @blocks-side-margin; margin-left: @blocks-side-margin; border-radius: 0 0 @border-radius-base @border-radius-base; }
+.main {
+    margin-bottom: @line-height-computed;
+    padding: 0px;
+    padding-top: 5px;
+    background: @content-bg;
+    margin-right: @blocks-side-margin;
+    margin-left: @blocks-side-margin;
+    border-radius: 0 0 @border-radius-base @border-radius-base;
+    @media (min-width: @screen-tablet) {
+        padding: 15px;
+    }
+}
+
 .layout-col-1,
 .layout-col-2-left,
 .layout-col-2-right {
@@ -61,9 +73,9 @@ ul.date {
     .col-left {
         .make-md-column(3);
         .make-md-column-pull(9);
-        padding-top: 40px;
         @media (min-width: @screen-tablet) {
             padding: 0;
+            padding-right: 10px;
         }
     }
 }
@@ -76,9 +88,9 @@ ul.date {
     }
     .col-right {
         .make-md-column(3);
-        padding-top: 40px;
         @media (min-width: @screen-tablet) {
             padding: 0;
+            padding-left: 10px;
         }
     }
 }

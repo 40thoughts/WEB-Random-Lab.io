@@ -1,0 +1,39 @@
+// Thelia : Content
+
+// Content List
+#folder-contents {
+    .contents > ul { .contents-list; }
+}
+
+.header-image {
+    height: 200px;
+    margin: 10px;
+    margin-left: 0;
+    margin-right: 0;
+    background-position: center center;
+    background-size: 100%;
+    @media (min-width: @screen-tablet) {
+        height: 350px;
+        margin: 0;
+        margin-bottom: 10px;
+    }
+    .title-container {
+        height: 90px;
+        position: relative;
+        top: 110px;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        #main-label {
+            margin: 0;
+            color: #fff;
+        }
+        @media (min-width: @screen-tablet) {
+            height: 80px;
+            top: 270px;
+        }
+    }
+    .date{
+        font-size: 0.8em;
+        color: #fff;
+    }
+}

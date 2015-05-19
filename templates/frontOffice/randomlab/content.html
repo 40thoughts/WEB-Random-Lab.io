@@ -44,14 +44,30 @@
     <div class="main layout-col-2-right">
         {hook name="content.main-top" content="$content_id"}
         <article id="content-main" class="col-main" role="main" aria-labelledby="main-label">
-
             {hook name="content.content-top" content="$content_id"}
-
             {loop name="blog.content" type="content" id=$content_id limit="1"}
+                {ifloop rel="content_header"}
+                    {loop name="content_header" type="image" width="1000" content="$content_id" limit="1"}
+                    <div class="header-image" style="background-image: url({$IMAGE_URL nofilter});">
+                    {/loop}
+                        <div class="title-container">
+                        <h1 id="main-label">{$TITLE}</h1>
+                        <span class="date">
+                            {intl l='Written on %date_create' date_create="{format_date date=$CREATE_DATE}"}
+                            {if $UPDATE_DATE ne $CREATE_DATE}
+                             - {intl l='Updated on %date_change' date_change="{format_date date=$UPDATE_DATE}"}
+                            {/if}
+                        </span>
+                        </div>
+                    </div>
+                    {/ifloop}
+                {elseloop rel="content_header"}
                 <h1 id="main-label" class="page-header">{$TITLE}</h1>
+                {/elseloop}
+
                 {if $CHAPO}
                     <div class="chapo">
-                        {$CHAPO}
+                        {$CHAPO nofilter}
                     </div>
                 {/if}
                 {if $DESCRIPTION}
@@ -75,14 +91,6 @@
                         {$POSTSCRIPTUM}
                    </small>
                 {/if}
-
-                <ul class="date pull-right">
-                    <li>{intl l='Written on %date_create' date_create="{format_date date=$CREATE_DATE}"}</li>
-                    {if $UPDATE_DATE ne $CREATE_DATE}
-                    <li>{intl l='Updated on %date_change' date_change="{format_date date=$UPDATE_DATE}"}</li>
-                    {/if}
-                </ul>
- 
             {/loop}
 
             {hook name="content.content-bottom" content="$content_id"}
@@ -91,6 +99,8 @@
 
         <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
             {include file="includes/asides/articles.html"}
+            {include file="includes/asides/news.html"}
+            {include file="includes/asides/blog.html"}
         </aside>
 
         {hook name="content.main-bottom" content="$content_id"}
