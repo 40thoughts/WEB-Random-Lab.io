@@ -13,3 +13,6 @@
 [submodule "local/modules/WelcomeNotification"]
 	path = local/modules/WelcomeNotification
 	url = https://github.com/zzuutt/WelcomeNotification.git
+[submodule "local/modules/Mailjet"]
+	path = local/modules/Mailjet
+	url = https://github.com/thelia-modules/Mailjet.git
