@@ -41,6 +41,11 @@
 
 {* Content *}
 {block name="main-content"}
+
+{$limit={$smarty.get.limit|default:8}}
+{$article_page={$smarty.get.page|default:1}}
+{$article_order={$smarty.get.order|default:'created_reverse'}}
+
 {assign var="$folder_id" value="{folder attr="id"}"}
     {hook name="folder.top" folder="$folder_id"}
     <div class="main">
@@ -50,13 +55,15 @@
         {hook name="folder.content-top" folder="$folder_id"}
 
         {if $folder_id}
-            {loop name="folder" type="folder" id=$folder_id limit="1"}
+            {loop name="folder_list" type="folder" id=$folder_id limit="1"}
                 <h1 id="main-label" class="page-header">{$TITLE}</h1>
+
                 {if $CHAPO}
                     <div class="folder-chapo">
                         {$CHAPO}
                     </div>
                 {/if}
+
                 {if $DESCRIPTION}
                     <div class="folder-description">
                         {$DESCRIPTION nofilter}
@@ -66,37 +73,67 @@
                 <div id="folder-contents">
                     <div class="contents">
                         {ifloop rel="folder_content"}
-                            <ul>
-                                {loop name="folder_content" type="content" folder="$ID"}
-                                    <li class="item">
-                                        <article>
-                                            {ifloop rel="content_thumbnail"}
-                                            <a href="{$URL nofilter}" tabindex="-1" class="content-image">
-                                                {loop name="content_thumbnail" type="image" width="369" height="247" content=$ID limit="1"}
-                                                    <img src="{$IMAGE_URL nofilter}" alt="{$TITLE}">
-                                                {/loop}
-                                                <span class="mask"></span>
-                                            </a>
-                                            {/ifloop}
 
-                                            <div class="content-info">
-                                                <h3 class="name"><a href="{$URL nofilter}">{$TITLE}</a></h3>
+                        {assign var="amount" value="{count type="content" folder=$folder_id}"}
+                        <div class="toolbar toolbar-top" role="toolbar">
+                            <div class="sorter-container">
+                                <span class="amount">{if ($amount > 1)}{intl l="%nb Items" nb="{$amount}"}{else}{intl l="%nb Item" nb="{$amount}"}{/if}</span>
 
-                                                {if $CHAPO}
-                                                <div class="short-description">
-                                                   {$CHAPO}
-                                                </div>
-                                                {/if}
+                                <span class="limiter">
+                                    <label for="limit-top">{intl l="Show"}</label>
+                                    <select id="limit-top" name="limit">
+                                        <option value="{url path={navigate to="current"} limit="4"}" {if $limit==4}selected{/if}>4</option>
+                                        <option value="{url path={navigate to="current"} limit="8"}" {if $limit==8}selected{/if}>8</option>
+                                        <option value="{url path={navigate to="current"} limit="12"}" {if $limit==12}selected{/if}>12</option>
+                                        <option value="{url path={navigate to="current"} limit="50"}"{if $limit==50}selected{/if}>50</option>
+                                        <option value="{url path={navigate to="current"} limit="100000"}" {if $limit==100000}selected{/if}>{intl l="All"}</option>
+                                    </select>
+                                    <span class="per-page">{intl l="per page"}</span>
+                                </span><!-- /.limiter -->
+
+                                <span class="sort-by">
+                                    <select id="sortby-top" name="sortby">
+                                        <option value="{url path={navigate to="current"} limit=$limit order="created"}" {if $article_order=="created"}selected{/if}>{intl l="Older articles"}</option>
+                                        <option value="{url path={navigate to="current"} limit=$limit order="created_reverse"}" {if $article_order=="created_reverse"}selected{/if}>{intl l="Newer articles"}</option>
+                                        <option value="{url path={navigate to="current"} limit=$limit order="updated"}" {if $article_order=="updated"}selected{/if}>{intl l="Older updates"}</option>
+                                        <option value="{url path={navigate to="current"} limit=$limit order="updated_reverse"}" {if $article_order=="updated_reverse"}selected{/if}>{intl l="Newer updates"}</option>
+                                    </select>
+                                    <label for="sortby-top"> {intl l="first"}</label>
+                                </span><!-- /.sort-by -->
+                            </div><!-- /.sorter -->
+                        </div>
+
+                        <ul>
+                            {loop name="folder_content" type="content" folder="$ID" order=$article_order limit=$limit page=$article_page}
+                                <li class="item">
+                                    <article>
+                                        {ifloop rel="content_thumbnail"}
+                                        <a href="{$URL nofilter}" tabindex="-1" class="content-image">
+                                            {loop name="content_thumbnail" type="image" width="369" height="247" content=$ID limit="1"}
+                                                <img src="{$IMAGE_URL nofilter}" alt="{$TITLE}">
+                                            {/loop}
+                                            <span class="mask"></span>
+                                        </a>
+                                        {/ifloop}
+
+                                        <div class="content-info">
+                                            <h3 class="name"><a href="{$URL nofilter}">{$TITLE}</a></h3>
+
+                                            {if $CHAPO}
+                                            <div class="short-description">
+                                               {$CHAPO}
                                             </div>
-                                        </article><!-- /content -->
-                                    </li>
-                                {/loop}
-                            </ul>
+                                            {/if}
+                                        </div>
+                                    </article><!-- /content -->
+                                </li>
+                            {/loop}
+                        </ul>
                         {/ifloop}
                         {elseloop  rel="folder_content"}
-                            <div class="folder-warning">
-                                {intl l="No Contents in this folder."}
-                            </div>
+                        <div class="folder-warning">
+                            {intl l="No Contents in this folder."}
+                        </div>
                         {/elseloop}
                     </div>
                 </div><!-- /#category-products -->
@@ -106,17 +143,54 @@
                     <ul>
                     {loop name="blog.document"  type="document" folder="{$ID}"}
                     <li><a href="{$DOCUMENT_URL nofilter}" target="_blank">{$TITLE}</a></li>
-                    {/loop}  
+                    {/loop}
                     </ul>
-                </div>    
-                {/ifloop}                                    
+                </div>
+                {/ifloop}
 
                 {if $POSTSCRIPTUM}
-                    <small class="folder-postscriptum">
-                        {$POSTSCRIPTUM}
-                    </small>
+                <small class="folder-postscriptum">
+                    {$POSTSCRIPTUM}
+                </small>
                 {/if}
             {/loop}
+
+            <div class="toolbar toolbar-bottom" role="toolbar">
+                {if $amount > $limit}
+                    <div class="pagination-container" role="pagination" aria-labelledby="pagination-label-{$toolbar}}">
+                        <strong id="pagination-label-{$toolbar}}" class="pagination-label">{intl l="Pagination"}</strong>
+                        <ul class="pagination">
+                            {if $article_page le 1}
+                                <li class="disabled">
+                                    <span class="prev"><i class="icon-prev"></i></span>
+                                </li>
+                            {else}
+                                <li>
+                                    <a href="{url path={navigate to="current"} page={$product_page-1} }" title="{intl l="Previous"}" class="prev"><i class="icon-prev"></i></a>
+                                </li>
+                            {/if}
+
+                            {pageloop rel="folder_content"}
+                                <li{if $PAGE eq $CURRENT} class="active"{/if}>
+                                    <a href="{url path={navigate to="current"} page=$PAGE }"> {$PAGE} </a>
+                                </li>
+                                {if $PAGE eq $LAST}
+                                    {if $CURRENT eq $LAST}
+                                        <li class="disabled">
+                                            <span class="next"><i class="icon-next"></i></span>
+                                        </li>
+                                    {else}
+                                        <li>
+                                            <a href="{url path={navigate to="current"} page={$NEXT} }" title="{intl l="Next"}" class="next"><i class="icon-next"></i></a>
+                                        </li>
+                                    {/if}
+                                {/if}
+                            {/pageloop}
+                        </ul>
+                    </div>
+                {/if}
+            </div><!-- /.toolbar toolbar-bottom -->
+
         {else}
             {ifloop rel="folders"}
             <ul>
