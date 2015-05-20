@@ -65,11 +65,6 @@
                 <h1 id="main-label" class="page-header">{$TITLE}</h1>
                 {/elseloop}
 
-                {if $CHAPO}
-                    <div class="chapo">
-                        {$CHAPO nofilter}
-                    </div>
-                {/if}
                 {if $DESCRIPTION}
                     <div class="description">
                         {$DESCRIPTION nofilter}
@@ -94,7 +89,6 @@
             {/loop}
 
             {hook name="content.content-bottom" content="$content_id"}
-
         </article>
 
         <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">

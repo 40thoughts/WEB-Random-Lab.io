@@ -107,22 +107,32 @@
                             {loop name="folder_content" type="content" folder="$ID" order=$article_order limit=$limit page=$article_page}
                                 <li class="item">
                                     <article>
-                                        {ifloop rel="content_thumbnail"}
-                                            {loop name="content_thumbnail" type="image" width="1000" content=$ID limit="1"}
-                                            <a href="{$URL nofilter}" tabindex="-1" class="content-image" style="background-image: url({$IMAGE_URL nofilter});">
-                                                <span class="mask"></span>
-                                            </a>
-                                            {/loop}
-                                        {/ifloop}
-
                                         <div class="content-info">
                                             <h3 class="name"><a href="{$URL nofilter}">{$TITLE}</a></h3>
 
-                                            {if $CHAPO}
-                                            <div class="short-description">
-                                               {$CHAPO nofilter}
-                                            </div>
-                                            {/if}
+                                            {ifloop rel="content_thumbnail"}
+                                                {loop name="content_thumbnail" type="image" width="1000" content=$ID limit="1"}
+                                                <a href="{$URL nofilter}" tabindex="-1" class="content-image" style="background-image: url({$IMAGE_URL nofilter});">
+                                                    <span class="mask">
+                                                {/loop}
+                                            {/ifloop}
+
+                                                        <ul class="date pull-right">
+                                                            <li>{intl l='Written on %date_create' date_create="{format_date date=$CREATE_DATE}"}</li>
+                                                            {if $UPDATE_DATE ne $CREATE_DATE}
+                                                            <li>{intl l='Updated on %date_change' date_change="{format_date date=$UPDATE_DATE}"}</li>
+                                                            {/if}
+                                                        </ul>
+                                                        {if $CHAPO}
+                                                        <div class="short-description">
+                                                            {$CHAPO nofilter}
+                                                        </div>
+                                                        {/if}
+
+                                            {ifloop rel="content_thumbnail"}
+                                                    </span>
+                                                </a>
+                                            {/ifloop}
                                         </div>
                                     </article><!-- /content -->
                                 </li>

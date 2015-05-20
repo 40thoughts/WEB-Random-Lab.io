@@ -12,24 +12,20 @@
     margin-right: 0;
     background-position: center center;
     background-size: 100%;
+    position: relative;
     @media (min-width: @screen-tablet) {
         height: 350px;
         margin: 0;
         margin-bottom: 10px;
     }
     .title-container {
-        height: 90px;
-        position: relative;
-        top: 110px;
+        position: absolute;
+        bottom: 0;
         background-color: rgba(0, 0, 0, 0.5);
         padding: 10px;
         #main-label {
             margin: 0;
             color: #fff;
-        }
-        @media (min-width: @screen-tablet) {
-            height: 80px;
-            top: 270px;
         }
     }
     .date{

@@ -7767,6 +7767,8 @@ ul.date {
   text-align: right;
   list-style: none;
   font-size: 0.8em;
+  padding-left: 10px;
+  padding-bottom: 10px;
 }
 .main {
   margin-bottom: 20px;
@@ -9072,8 +9074,12 @@ a.label-delivered:focus {
 }
 .block .block-title {
   font-size: 21px;
-  margin-top: 0;
   margin-bottom: 0;
+}
+@media (min-width: 768px) {
+  .block .block-title {
+    margin-top: 0;
+  }
 }
 .block .block-title > a {
   color: inherit;
@@ -11128,6 +11134,13 @@ select[multiple].option .option-content .form-control {
     -o-transition: opacity 300ms ease-in-out 50ms;
     transition: opacity 300ms ease-in-out 50ms;
   }
+  #folder-contents .contents > ul .content-image > .mask .short-description {
+    position: absolute;
+    bottom: 50%;
+    transform: translateY(50%);
+    font-size: 1.5em;
+    text-align: center;
+  }
   #folder-contents .contents > ul .content-image:hover .mask,
   #folder-contents .contents > ul .content-image:focus .mask {
     visibility: visible;
@@ -11150,31 +11163,57 @@ select[multiple].option .option-content .form-control {
   background-color: #f5f5f5;
   border-radius: 4px;
 }
-#folder-contents .contents > ul .item > article .content-image {
-  display: block;
-  margin: 10px;
-  margin-bottom: 0;
-  height: 200px;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100%;
-}
-#folder-contents .contents > ul .item > article .content-image > img {
-  display: block;
-  width: 100% \9;
-  max-width: 100%;
-  height: auto;
-  width: 100%;
-}
 #folder-contents .contents > ul .item > article .content-info {
   padding: 10px;
   padding-top: 0;
 }
 #folder-contents .contents > ul .item > article .content-info .name {
   margin: 0;
-  margin-bottom: 10px;
+  margin-top: 10px;
   padding: 10px;
   background-color: #e4e4e4;
+}
+#folder-contents .contents > ul .item > article .content-image {
+  display: block;
+  margin: 0px;
+  margin-bottom: 10px;
+  position: relative;
+  height: 180px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+@media (min-width: 480px) {
+  #folder-contents .contents > ul .item > article .content-image {
+    height: 300px;
+  }
+}
+@media (min-width: 768px) {
+  #folder-contents .contents > ul .item > article .content-image {
+    height: 400px;
+  }
+}
+#folder-contents .contents > ul .item > article .content-image > .mask {
+  color: #fff;
+}
+#folder-contents .contents > ul .item > article .content-image > .mask .short-description {
+  position: absolute;
+  padding: 10px;
+}
+@media (max-width: 768px) {
+  #folder-contents .contents > ul .item > article .content-image > .mask .short-description {
+    bottom: 0;
+    background-color: rgba(10, 52, 104, 0.4);
+  }
+}
+#folder-contents .contents > ul .item > article .content-image > .mask .date {
+  padding: 10px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  #folder-contents .contents > ul .item > article .content-image > .mask .date {
+    background-color: rgba(10, 52, 104, 0.4);
+  }
 }
 @media (min-width: 768px) {
   .contents-grid .content-image,
@@ -11200,6 +11239,14 @@ select[multiple].option .option-content .form-control {
     -webkit-transition: opacity 300ms ease-in-out 50ms;
     -o-transition: opacity 300ms ease-in-out 50ms;
     transition: opacity 300ms ease-in-out 50ms;
+  }
+  .contents-grid .content-image > .mask .short-description,
+  .contents-list .content-image > .mask .short-description {
+    position: absolute;
+    bottom: 50%;
+    transform: translateY(50%);
+    font-size: 1.5em;
+    text-align: center;
   }
   .contents-grid .content-image:hover .mask,
   .contents-list .content-image:hover .mask,
@@ -11364,31 +11411,57 @@ select[multiple].option .option-content .form-control {
   background-color: #f5f5f5;
   border-radius: 4px;
 }
-.contents-list .item > article .content-image {
-  display: block;
-  margin: 10px;
-  margin-bottom: 0;
-  height: 200px;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100%;
-}
-.contents-list .item > article .content-image > img {
-  display: block;
-  width: 100% \9;
-  max-width: 100%;
-  height: auto;
-  width: 100%;
-}
 .contents-list .item > article .content-info {
   padding: 10px;
   padding-top: 0;
 }
 .contents-list .item > article .content-info .name {
   margin: 0;
-  margin-bottom: 10px;
+  margin-top: 10px;
   padding: 10px;
   background-color: #e4e4e4;
+}
+.contents-list .item > article .content-image {
+  display: block;
+  margin: 0px;
+  margin-bottom: 10px;
+  position: relative;
+  height: 180px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+@media (min-width: 480px) {
+  .contents-list .item > article .content-image {
+    height: 300px;
+  }
+}
+@media (min-width: 768px) {
+  .contents-list .item > article .content-image {
+    height: 400px;
+  }
+}
+.contents-list .item > article .content-image > .mask {
+  color: #fff;
+}
+.contents-list .item > article .content-image > .mask .short-description {
+  position: absolute;
+  padding: 10px;
+}
+@media (max-width: 768px) {
+  .contents-list .item > article .content-image > .mask .short-description {
+    bottom: 0;
+    background-color: rgba(10, 52, 104, 0.4);
+  }
+}
+.contents-list .item > article .content-image > .mask .date {
+  padding: 10px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .contents-list .item > article .content-image > .mask .date {
+    background-color: rgba(10, 52, 104, 0.4);
+  }
 }
 #folder-contents .contents > ul {
   padding-left: 0;
@@ -11417,6 +11490,13 @@ select[multiple].option .option-content .form-control {
     -o-transition: opacity 300ms ease-in-out 50ms;
     transition: opacity 300ms ease-in-out 50ms;
   }
+  #folder-contents .contents > ul .content-image > .mask .short-description {
+    position: absolute;
+    bottom: 50%;
+    transform: translateY(50%);
+    font-size: 1.5em;
+    text-align: center;
+  }
   #folder-contents .contents > ul .content-image:hover .mask,
   #folder-contents .contents > ul .content-image:focus .mask {
     visibility: visible;
@@ -11439,31 +11519,57 @@ select[multiple].option .option-content .form-control {
   background-color: #f5f5f5;
   border-radius: 4px;
 }
-#folder-contents .contents > ul .item > article .content-image {
-  display: block;
-  margin: 10px;
-  margin-bottom: 0;
-  height: 200px;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100%;
-}
-#folder-contents .contents > ul .item > article .content-image > img {
-  display: block;
-  width: 100% \9;
-  max-width: 100%;
-  height: auto;
-  width: 100%;
-}
 #folder-contents .contents > ul .item > article .content-info {
   padding: 10px;
   padding-top: 0;
 }
 #folder-contents .contents > ul .item > article .content-info .name {
   margin: 0;
-  margin-bottom: 10px;
+  margin-top: 10px;
   padding: 10px;
   background-color: #e4e4e4;
+}
+#folder-contents .contents > ul .item > article .content-image {
+  display: block;
+  margin: 0px;
+  margin-bottom: 10px;
+  position: relative;
+  height: 180px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+@media (min-width: 480px) {
+  #folder-contents .contents > ul .item > article .content-image {
+    height: 300px;
+  }
+}
+@media (min-width: 768px) {
+  #folder-contents .contents > ul .item > article .content-image {
+    height: 400px;
+  }
+}
+#folder-contents .contents > ul .item > article .content-image > .mask {
+  color: #fff;
+}
+#folder-contents .contents > ul .item > article .content-image > .mask .short-description {
+  position: absolute;
+  padding: 10px;
+}
+@media (max-width: 768px) {
+  #folder-contents .contents > ul .item > article .content-image > .mask .short-description {
+    bottom: 0;
+    background-color: rgba(10, 52, 104, 0.4);
+  }
+}
+#folder-contents .contents > ul .item > article .content-image > .mask .date {
+  padding: 10px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  #folder-contents .contents > ul .item > article .content-image > .mask .date {
+    background-color: rgba(10, 52, 104, 0.4);
+  }
 }
 .header-image {
   height: 200px;
@@ -11472,6 +11578,7 @@ select[multiple].option .option-content .form-control {
   margin-right: 0;
   background-position: center center;
   background-size: 100%;
+  position: relative;
 }
 @media (min-width: 768px) {
   .header-image {
@@ -11481,21 +11588,14 @@ select[multiple].option .option-content .form-control {
   }
 }
 .header-image .title-container {
-  height: 90px;
-  position: relative;
-  top: 110px;
+  position: absolute;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   padding: 10px;
 }
 .header-image .title-container #main-label {
   margin: 0;
   color: #fff;
-}
-@media (min-width: 768px) {
-  .header-image .title-container {
-    height: 80px;
-    top: 270px;
-  }
 }
 .header-image .date {
   font-size: 0.8em;
