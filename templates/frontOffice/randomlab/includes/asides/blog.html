@@ -1,19 +1,29 @@
+{assign var="blog_folder" value="{config key="blog_folder"}"}
+
 {hook name="content.sidebar-top"}
 {ifhook rel="content.sidebar-body"}
 {hook name="content.sidebar-body"}
 {/ifhook}
 {elsehook rel="content.sidebar-body"}
-<section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
-    <div class="block-heading"><h3 class="block-title" >{intl l="Blog"}</h3></div>
-    <div class="block-content">
-        <nav class="nav-categories">
-            <ul id="category" class="accordion">
-                {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}"}
-                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
-                {/loop}
-            </ul>
-        </nav>
-    </div>
-</section>
+    {if $blog_folder ne "0" && $blog_folder ne ""}
+        {ifloop rel="blog.navigation"}
+            {loop type="folder" name="blog.navigation" id="$blog_folder"}
+                {ifloop rel="blog_content"}
+                    <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label"> 
+                        <div class="block-heading"><h3 class="block-title" >{intl l="Blog"}</h3></div>
+                        <div class="block-content">
+                            <nav class="nav-categories">
+                                <ul id="category" class="accordion">
+                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="created_reverse"}
+                                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
+                                    {/loop}
+                                </ul>
+                            </nav>
+                        </div>
+                    </section>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
 {/elsehook}
 {hook name="content.sidebar-bottom"}

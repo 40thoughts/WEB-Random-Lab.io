@@ -225,8 +225,12 @@
 
         </div>
         <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
-            {include file="includes/asides/news.html"}
-            {include file="includes/asides/blog.html"}
+            {if $folder_id ne {config key="news_folder"}}
+                {include file="includes/asides/news.html"}
+            {/if}
+            {if $folder_id ne {config key="blog_folder"}}
+                {include file="includes/asides/blog.html"}
+            {/if}
         </aside>
 
         {hook name="folder.main-bottom" folder="$folder_id"}
