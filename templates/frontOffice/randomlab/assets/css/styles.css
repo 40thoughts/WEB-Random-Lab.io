@@ -1,7 +1,6 @@
 /* Bootstrap */
 /*! normalize.css v3.0.1 | MIT License | git.io/normalize */
 @import url(//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800);
-@import url(http://fonts.googleapis.com/css?family=Fredoka+One);
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
@@ -7729,6 +7728,16 @@ a .icon-flip-vertical:before {
 .icon-renren:before {
   content: "\f18b";
 }
+/* Sportrop (font) */
+/*!
+ *  Sportrop
+ */
+@font-face {
+  font-family: 'Sportrop';
+  src: url('../font/sportrop/Sportrop.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
 /* Thelia */
 .page-header {
   margin-top: 0;
@@ -7992,7 +8001,7 @@ header .header .title {
   min-height: 1px;
   padding-left: 15px;
   padding-right: 15px;
-  font-family: 'Fredoka One', 'Open Sans', sans-serif;
+  font-family: 'Sportrop', 'Open Sans', sans-serif;
   font-size: 130px;
   text-align: center;
 }
