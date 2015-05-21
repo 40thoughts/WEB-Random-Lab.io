@@ -8002,8 +8002,9 @@ header .header .title {
   padding-left: 15px;
   padding-right: 15px;
   font-family: 'Sportrop', 'Open Sans', sans-serif;
-  font-size: 130px;
+  font-size: 100px;
   text-align: center;
+  padding-top: 10px;
 }
 @media (min-width: 992px) {
   header .header .title {
