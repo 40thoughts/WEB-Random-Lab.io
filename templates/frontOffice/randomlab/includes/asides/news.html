@@ -14,9 +14,15 @@
                         <div class="block-content">
                             <nav class="nav-categories">
                                 <ul id="category" class="accordion">
+                                    {if {config key="news_folder"} eq $ID}
+                                    {loop name="news_content" type="content" folder="{config key="news_folder"}" limit="{config key="aside_articles_nb"}" order="created_reverse" exclude="{content attr="id"}"}
+                                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
+                                    {/loop}
+                                    {else}
                                     {loop name="news_content" type="content" folder="{config key="news_folder"}" limit="{config key="aside_articles_nb"}" order="created_reverse"}
                                     <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                                     {/loop}
+                                    {/if}
                                 </ul>
                             </nav>
                         </div>
