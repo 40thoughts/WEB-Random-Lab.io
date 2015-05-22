@@ -8005,6 +8005,7 @@ header .header .title {
   font-size: 100px;
   text-align: center;
   padding-top: 10px;
+  text-shadow: -3px 0 1px #1ef2f1, 3px 0 1px #f6050a;
 }
 @media (min-width: 992px) {
   header .header .title {
