@@ -18,6 +18,9 @@
 <!--[if IE 7 ]><html class="no-js oldie ie7" lang="{lang attr="code"}"> <![endif]-->
 <!--[if IE 8 ]><html class="no-js oldie ie8" lang="{lang attr="code"}"> <![endif]-->
 <!--[if (gte IE 9)|!(IE)]><!--><html lang="{lang attr="code"}" class="no-js"> <!--<![endif]-->
+
+<script type="text/javascript" src="http://www.cookie-bar.eu/cookiebar-latest.js"></script>
+
 <head>
     {hook name="main.head-top"}
     {* Test if javascript is enabled *}
