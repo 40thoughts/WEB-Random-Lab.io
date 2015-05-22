@@ -11179,6 +11179,9 @@ select[multiple].option .option-content .form-control {
   padding: 10px;
   background-color: #e4e4e4;
 }
+#folder-contents .contents > ul .item > article .content-info .short-description {
+  margin-top: 10px;
+}
 #folder-contents .contents > ul .item > article .content-image {
   display: block;
   margin: 0px;
@@ -11422,6 +11425,9 @@ select[multiple].option .option-content .form-control {
   padding: 10px;
   background-color: #e4e4e4;
 }
+.contents-list .item > article .content-info .short-description {
+  margin-top: 10px;
+}
 .contents-list .item > article .content-image {
   display: block;
   margin: 0px;
@@ -11524,6 +11530,9 @@ select[multiple].option .option-content .form-control {
   margin-top: 10px;
   padding: 10px;
   background-color: #e4e4e4;
+}
+#folder-contents .contents > ul .item > article .content-info .short-description {
+  margin-top: 10px;
 }
 #folder-contents .contents > ul .item > article .content-image {
   display: block;
