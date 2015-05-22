@@ -13,6 +13,61 @@
 
 {* Main content *}
 {block name="main-content"}
+{assign var="news_folder" value="{config key="news_folder"}"}
+{assign var="blog_folder" value="{config key="blog_folder"}"}
+<div class="main layout-col-2-right">
+    <div class="col-main contents-list" role="main" aria-labelledby="main-label">
+    {if $news_folder ne "0" && $news_folder ne ""}
+        {ifloop rel="news.folder"}
+            {loop type="folder" name="news.folder" id="$news_folder"}
+                {ifloop rel="news_content"}
+                    <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
+                        <div class="block-heading"><h3 class="block-title" >{intl l="News"}</h3></div>
+                        <div class="block-content">
+                            <nav class="nav-categories">
+                                <ul id="category" class="accordion">
+                                    {loop name="news_content" type="content" folder="{config key="news_folder"}" limit="{config key="home_news_nb"}" order="created_reverse"}
+                                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
+                                    {/loop}
+                                </ul>
+                            </nav>
+                        </div>
+                    </section>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
+    {if $blog_folder ne "0" && $blog_folder ne ""}
+        {ifloop rel="blog.folder"}
+            {loop type="folder" name="blog.folder" id="$blog_folder"}
+                {ifloop rel="blog_content"}
+                    <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
+                        <div class="block-heading"><h3 class="block-title" >{intl l="Blog"}</h3></div>
+                        <div class="block-content">
+                            <nav class="nav-categories">
+                                <ul id="category" class="accordion">
+                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="home_blog_nb"}" order="created_reverse"}
+                                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
+                                    {/loop}
+                                </ul>
+                            </nav>
+                        </div>
+                    </section>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
+    </div>
+    <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
+        {assign var="aside_order" value="random"}
+        {if $folder_id ne {config key="news_folder"}}
+            {include file="includes/asides/news.html"}
+        {/if}
+        {if $folder_id ne {config key="blog_folder"}}
+            {include file="includes/asides/blog.html"}
+        {/if}
+    </aside>
+</div>
     {hook name="home.body"}
 {/block}
 

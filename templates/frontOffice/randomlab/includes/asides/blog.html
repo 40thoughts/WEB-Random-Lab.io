@@ -1,4 +1,5 @@
 {assign var="blog_folder" value="{config key="blog_folder"}"}
+{$aside_order={$aside_order|default:'created_reverse'}}
 
 {hook name="content.sidebar-top"}
 {ifhook rel="content.sidebar-body"}
@@ -15,11 +16,11 @@
                             <nav class="nav-categories">
                                 <ul id="category" class="accordion">
                                     {if {config key="blog_folder"} eq $ID}
-                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="created_reverse" exclude="{content attr="id"}"}
+                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="$aside_order" exclude="{content attr="id"}"}
                                     <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                                     {/loop}
                                     {else}
-                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="created_reverse"}
+                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="$aside_order"}
                                     <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                                     {/loop}
                                     {/if}
