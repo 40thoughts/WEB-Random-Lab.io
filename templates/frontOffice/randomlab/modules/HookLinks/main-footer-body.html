@@ -31,6 +31,14 @@
     <li><a href="{url path="/login"}">{intl l="Login" d="hooklinks.fo.default"}</a></li>
     <li><a href="{url path="/register"}">{intl l="Register" d="hooklinks.fo.default"}</a></li>
     {/elseloop}
+    {ifloop rel="category.navigation"}
+        {loop type="category" name="category.navigation" parent="0"}
+            {ifloop rel="products.navigation"}
+                {loop type="product" name="products.navigation" category=$ID}
+                {/loop}
     <li><a href="{url path="/cart"}">{intl l="Cart" d="hooklinks.fo.default"}</a></li>
     <li><a href="{url path="/order/delivery"}">{intl l="Checkout" d="hooklinks.fo.default"}</a></li>
+            {/ifloop}
+        {/loop}
+    {/ifloop}
 </ul>
