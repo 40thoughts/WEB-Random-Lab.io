@@ -27,3 +27,35 @@
         }
     }
 }
+
+.page-home {
+    .col-main {
+        .title { margin: 10px; }
+        .date { position: absolute; top: 5px; right:10px; }
+        .content-image {
+            position: relative;
+            display: block;
+            height: 200px;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            @media (min-width: @screen-tablet) {
+                height: 400px;
+            }
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 100%;
+            > .mask {
+                color: #fff;
+                .short-description {
+                    position: absolute;
+                    padding: 10px;
+                    @media (max-width: @screen-tablet) {
+                        bottom: 0;
+                        background-color: rgba(red(@brand-primary), green(@brand-primary), blue(@brand-primary), .4);
+                    }
+                }
+            }
+        }
+    }
+}

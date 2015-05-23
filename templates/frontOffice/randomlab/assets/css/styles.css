@@ -11947,6 +11947,43 @@ select[multiple].option .option-content .form-control {
     height: 80px;
   }
 }
+.page-home .col-main .title {
+  margin: 10px;
+}
+.page-home .col-main .date {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+}
+.page-home .col-main .content-image {
+  position: relative;
+  display: block;
+  height: 200px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+@media (min-width: 768px) {
+  .page-home .col-main .content-image {
+    height: 400px;
+  }
+}
+.page-home .col-main .content-image > .mask {
+  color: #fff;
+}
+.page-home .col-main .content-image > .mask .short-description {
+  position: absolute;
+  padding: 10px;
+}
+@media (max-width: 768px) {
+  .page-home .col-main .content-image > .mask .short-description {
+    bottom: 0;
+    background-color: rgba(10, 52, 104, 0.4);
+  }
+}
 .page-404 .main {
   padding: 10px 0 100px;
 }
