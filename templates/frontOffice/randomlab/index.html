@@ -14,6 +14,7 @@
 {* Main content *}
 {block name="main-content"}
 {assign var="news_folder" value="{config key="news_folder"}"}
+{assign var="tuto_folder" value="{config key="tuto_folder"}"}
 {assign var="blog_folder" value="{config key="blog_folder"}"}
 <div class="main layout-col-2-right">
     <div class="col-main contents-list" role="main" aria-labelledby="main-label">
@@ -22,7 +23,7 @@
             {loop type="folder" name="news.folder" id="$news_folder"}
                 {ifloop rel="news_content"}
                     <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
-                        <div class="block-heading"><h3 class="block-title" >{intl l="News"}</h3></div>
+                        <div class="block-heading"><h3 class="block-title" >{$TITLE}</h3></div>
                         <div class="block-content">
                             <nav class="nav-categories">
                                 <ul id="category" class="accordion">
@@ -68,12 +69,64 @@
             {/loop}
         {/ifloop}
     {/if}
+    {if $tuto_folder ne "0" && $tuto_folder ne ""}
+        {ifloop rel="tuto.folder"}
+            {loop type="folder" name="tuto.folder" id="$tuto_folder"}
+                {ifloop rel="tuto_content"}
+                    <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
+                        <div class="block-heading"><h3 class="block-title" >{$TITLE}</h3></div>
+                        <div class="block-content">
+                            <nav class="nav-categories">
+                                <ul id="category" class="accordion">
+                                    {loop name="tuto_content" type="content" folder="{config key="tuto_folder"}" limit="{config key="home_tuto_nb"}" order="created_reverse"}
+                                    <li><a href="{$URL nofilter}">
+                                        <div class="title"><h4>{$TITLE}</h4></div>
+                                        <ul class="date">
+                                            <li>{intl l='Written on %date_create' date_create="{format_date date=$CREATE_DATE}"}</li>
+                                            {if $UPDATE_DATE ne $CREATE_DATE}
+                                            <li>{intl l='Updated on %date_change' date_change="{format_date date=$UPDATE_DATE}"}</li>
+                                            {/if}
+                                        </ul>
+
+                                        {ifloop rel="content_thumbnail"}
+                                            {loop name="content_thumbnail" type="image" width="1000" content=$ID limit="1"}
+                                            <div class="content-image" style="background-image: url({$IMAGE_URL nofilter});">
+                                            {/loop}
+                                        {/ifloop}
+
+                                        {ifloop rel="content_thumbnail"}
+                                            <span class="mask">
+                                        {/ifloop}
+
+                                        {if $CHAPO}
+                                        <div class="short-description">
+                                        {$CHAPO nofilter}
+                                        </div>
+                                        {/if}
+
+                                        {ifloop rel="content_thumbnail"}
+                                            </span>
+                                        </div>
+                                        {/ifloop}
+
+                                        </a>
+                                    </li>
+                                    {/loop}
+                                </ul>
+                            </nav>
+                        </div>
+
+                    </section>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
     {if $blog_folder ne "0" && $blog_folder ne ""}
         {ifloop rel="blog.folder"}
             {loop type="folder" name="blog.folder" id="$blog_folder"}
                 {ifloop rel="blog_content"}
                     <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
-                        <div class="block-heading"><h3 class="block-title" >{intl l="Blog"}</h3></div>
+                        <div class="block-heading"><h3 class="block-title" >{$TITLE}</h3></div>
                         <div class="block-content">
                             <nav class="nav-categories">
                                 <ul id="category" class="accordion">
@@ -125,6 +178,10 @@
         {assign var="aside_order" value="random"}
         {if $folder_id ne {config key="news_folder"}}
             {assign var="folder_id_aside" value="{config key="news_folder"}"}
+            {include file="includes/asides/folder.html"}
+        {/if}
+        {if $folder_id ne {config key="tuto_folder"}}
+            {assign var="folder_id_aside" value="{config key="tuto_folder"}"}
             {include file="includes/asides/folder.html"}
         {/if}
         {if $folder_id ne {config key="blog_folder"}}
