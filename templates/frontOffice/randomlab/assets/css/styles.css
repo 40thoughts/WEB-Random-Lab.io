@@ -11607,6 +11607,21 @@ select[multiple].option .option-content .form-control {
   font-size: 0.8em;
   color: #fff;
 }
+.description .responsive-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  padding-top: 30px;
+  margin-bottom: 10px;
+  height: 0;
+  overflow: hidden;
+}
+.description .responsive-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 .brand-description {
   margin-bottom: 20px;
 }
