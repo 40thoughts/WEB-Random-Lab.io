@@ -1,4 +1,3 @@
-{assign var="blog_folder" value="{config key="blog_folder"}"}
 {$aside_order={$aside_order|default:'created_reverse'}}
 
 {hook name="content.sidebar-top"}
@@ -6,21 +5,21 @@
 {hook name="content.sidebar-body"}
 {/ifhook}
 {elsehook rel="content.sidebar-body"}
-    {if $blog_folder ne "0" && $blog_folder ne ""}
-        {ifloop rel="blog.navigation"}
-            {loop type="folder" name="blog.navigation" id="$blog_folder"}
-                {ifloop rel="blog_content"}
-                    <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label"> 
-                        <div class="block-heading"><h3 class="block-title" >{intl l="Blog"}</h3></div>
+    {if $folder_id_aside ne "0" && $folder_id_aside ne ""}
+        {ifloop rel="folder.navigation"}
+            {loop type="folder" name="folder.navigation" id="$folder_id_aside"}
+                {ifloop rel="folder_content"}
+                    <section id="categories" class="block block-nav" role="navigation" aria-labelledby="categories-label">
+                        <div class="block-heading"><h3 class="block-title" >{intl l="{$TITLE}"}</h3></div>
                         <div class="block-content">
                             <nav class="nav-categories">
                                 <ul id="category" class="accordion">
-                                    {if {config key="blog_folder"} eq $ID}
-                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="$aside_order" exclude="{content attr="id"}"}
+                                    {if $folder_id_aside eq $ID}
+                                    {loop name="folder_content" type="content" folder="$folder_id_aside" limit="{config key="aside_articles_nb"}" order="$aside_order" exclude="{content attr="id"}"}
                                     <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                                     {/loop}
                                     {else}
-                                    {loop name="blog_content" type="content" folder="{config key="blog_folder"}" limit="{config key="aside_articles_nb"}" order="$aside_order"}
+                                    {loop name="folder_content" type="content" folder="$folder_id_aside" limit="{config key="aside_articles_nb"}" order="$aside_order"}
                                     <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                                     {/loop}
                                     {/if}

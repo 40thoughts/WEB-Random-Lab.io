@@ -124,10 +124,12 @@
     <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
         {assign var="aside_order" value="random"}
         {if $folder_id ne {config key="news_folder"}}
-            {include file="includes/asides/news.html"}
+            {assign var="folder_id_aside" value="{config key="news_folder"}"}
+            {include file="includes/asides/folder.html"}
         {/if}
         {if $folder_id ne {config key="blog_folder"}}
-            {include file="includes/asides/blog.html"}
+            {assign var="folder_id_aside" value="{config key="blog_folder"}"}
+            {include file="includes/asides/folder.html"}
         {/if}
     </aside>
 </div>
