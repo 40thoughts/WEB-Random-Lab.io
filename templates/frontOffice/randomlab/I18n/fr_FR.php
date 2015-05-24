@@ -110,7 +110,6 @@ return array(
     'Need help ?' => 'Besoin d\'aide ?',
     'Newer articles' => 'Derniers articles',
     'Newer updates' => 'Dernières MAJ.',
-    'News' => 'Actu\'',
     'Newsletter' => 'Newsletter',
     'Newsletter Subscription' => 'Inscription à la newsletter',
     'Next' => 'Suivant',
