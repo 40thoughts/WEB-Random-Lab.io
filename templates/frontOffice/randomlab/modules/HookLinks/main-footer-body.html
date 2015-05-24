@@ -1,4 +1,5 @@
 {assign var="news_folder" value="{config key="news_folder"}"}
+{assign var="tuto_folder" value="{config key="tuto_folder"}"}
 {assign var="blog_folder" value="{config key="blog_folder"}"}
 <ul>
     {if $news_folder ne "0" && $news_folder ne ""}
@@ -7,7 +8,18 @@
                 {ifloop rel="news_content"}
                     {loop name="news_content" type="content" folder="$news_folder"}
                     {/loop}
-                    <li><a href="{$URL nofilter}">{intl l="News"}</a></li>
+                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
+                {/ifloop}
+            {/loop}
+        {/ifloop}
+    {/if}
+    {if $tuto_folder ne "0" && $tuto_folder ne ""}
+        {ifloop rel="tuto.navigation"}
+            {loop type="folder" name="tuto.navigation" id="$tuto_folder"}
+                {ifloop rel="tuto_content"}
+                    {loop name="tuto_content" type="content" folder="$tuto_folder"}
+                    {/loop}
+                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                 {/ifloop}
             {/loop}
         {/ifloop}
@@ -18,7 +30,7 @@
                 {ifloop rel="blog_content"}
                     {loop name="blog_content" type="content" folder="$blog_folder"}
                     {/loop}
-                    <li><a href="{$URL nofilter}">{intl l="Blog"}</a></li>
+                    <li><a href="{$URL nofilter}">{$TITLE}</a></li>
                 {/ifloop}
             {/loop}
         {/ifloop}
