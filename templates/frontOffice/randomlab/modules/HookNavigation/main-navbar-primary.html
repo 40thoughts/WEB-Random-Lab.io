@@ -53,9 +53,11 @@
                         {ifloop rel="products.navigation"}
                             {loop type="product" name="products.navigation" category=$ID}
                             {/loop}
-                            <li><a href="{url path="/?view=category"}"><i class="fa fa-shopping-cart fa-fw fa-lg"></i>&nbsp;{intl l="Shop"}</a></li>
                         {/ifloop}
                     {/loop}
+                {/ifloop}
+                {ifloop rel="products.navigation"}
+                <li><a href="{url path="/?view=category"}"><i class="fa fa-shopping-cart fa-fw fa-lg"></i>&nbsp;{intl l="Shop"}</a></li>
                 {/ifloop}
             </ul>
         </div>

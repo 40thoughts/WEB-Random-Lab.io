@@ -48,9 +48,11 @@
             {ifloop rel="products.navigation"}
                 {loop type="product" name="products.navigation" category=$ID}
                 {/loop}
-    <li><a href="{url path="/cart"}">{intl l="Cart" d="hooklinks.fo.default"}</a></li>
-    <li><a href="{url path="/order/delivery"}">{intl l="Checkout" d="hooklinks.fo.default"}</a></li>
             {/ifloop}
         {/loop}
+    {/ifloop}
+    {ifloop rel="products.navigation"}
+    <li><a href="{url path="/cart"}">{intl l="Cart" d="hooklinks.fo.default"}</a></li>
+    <li><a href="{url path="/order/delivery"}">{intl l="Checkout" d="hooklinks.fo.default"}</a></li>
     {/ifloop}
 </ul>

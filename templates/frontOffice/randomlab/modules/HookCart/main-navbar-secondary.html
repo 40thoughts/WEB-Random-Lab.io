@@ -3,7 +3,11 @@
 {ifloop rel="products.navigation"}
 {loop type="product" name="products.navigation" category=$ID}
 {/loop}
+{/ifloop}
+{/loop}
+{/ifloop}
 
+{ifloop rel="products.navigation"}
 <ul class="nav navbar-nav navbar-cart navbar-right">
     {ifloop rel="cartloop"}
     <li class="dropdown pull-right cart-not-empty cart-container">
@@ -75,7 +79,4 @@
     </li>
     {/elseloop}
 </ul>
-
-{/ifloop}
-{/loop}
 {/ifloop}
