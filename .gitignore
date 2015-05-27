@@ -55,6 +55,7 @@ templates/backOffice/*
 !templates/email
 templates/email/*
 !templates/email/default
+!templates/email/randomlab
 !templates/pdf
 templates/pdf/*
 !templates/pdf/default
