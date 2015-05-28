@@ -225,6 +225,9 @@
 
         </div>
         <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
+            <div class="asideAd">
+                {include file="includes/ads/aside.html"}
+            </div>
             {if $folder_id ne {config key="news_folder"}}
                 {assign var="folder_id_aside" value="{config key="news_folder"}"}
                 {include file="includes/asides/folder.html"}

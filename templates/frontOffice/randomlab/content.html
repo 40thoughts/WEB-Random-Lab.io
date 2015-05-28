@@ -92,6 +92,9 @@
         </article>
 
         <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
+            <div class="asideAd">
+                {include file="includes/ads/aside.html"}
+            </div>
             {assign var="folder_id_aside" value="{config key="news_folder"}"}
             {include file="includes/asides/folder.html"}
             {assign var="folder_id_aside" value="{config key="tuto_folder"}"}
