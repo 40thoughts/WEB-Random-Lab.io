@@ -109,6 +109,9 @@
                 <h1 class="title titlerow"><a href="{navigate to="index"}">{$store_name}</a></h1>
             </div>
             {hook name="main.navbar-primary"}
+            <div class="headerAd">
+                {include file="includes/ads/header.html"}
+            </div>
         </div>
     </header><!-- /.header -->
 
@@ -117,9 +120,6 @@
 
 <main class="main-container" role="main">
     <div class="container">
-        <div class="headerAd">
-            {include file="includes/ads/header.html"}
-        </div>
         {hook name="main.content-top"}
         {block name="breadcrumb"}{include file="misc/breadcrumb.tpl"}{/block}
         <div id="content">{block name="main-content"}{/block}</div>
