@@ -117,6 +117,9 @@
 
 <main class="main-container" role="main">
     <div class="container">
+        <div class="headerAd">
+            {include file="includes/ads/header.html"}
+        </div>
         {hook name="main.content-top"}
         {block name="breadcrumb"}{include file="misc/breadcrumb.tpl"}{/block}
         <div id="content">{block name="main-content"}{/block}</div>
@@ -206,6 +209,8 @@
 {javascripts file='assets/js/plugins/bootbox/bootbox.js'}
     <script src="{$asset_url}"></script>
 {/javascripts}
+
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
 {hook name="main.after-javascript-include"}
 

@@ -12014,5 +12014,9 @@ select[multiple].option .option-content .form-control {
   font-size: 15px;
   font-weight: normal;
 }
+.headerAd {
+  text-align: center;
+  margin-bottom: 10px;
+}
 /* Theme */
 /* @import "../themes/default/less/import"; */

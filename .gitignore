@@ -60,6 +60,7 @@ templates/email/*
 templates/pdf/*
 !templates/pdf/default
 !templates/pdf/randomlab
+templates/frontOffice/randomlab/includes/ads/*
 
 #Ignore CodeKit
 codekit-config.json
