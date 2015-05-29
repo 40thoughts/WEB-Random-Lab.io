@@ -59,7 +59,9 @@
         {hook name="category.main-top" category="$category_id"}
 
         <article class="col-main {$smarty.get.mode|default:"grid"}" role="main">
-
+            <div class="headerAd">
+                {include file="includes/ads/header.html"}
+            </div>
             {hook name="category.content-top" category="$category_id"}
 
             {if #category_display_detail# && $category_id}

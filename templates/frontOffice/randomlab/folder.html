@@ -51,7 +51,9 @@
     <div class="main layout-col-2-right">
         {hook name="folder.main-top" folder="$folder_id"}
         <div class="col-main contents-list" role="main" aria-labelledby="main-label">
-
+        <div class="headerAd">
+            {include file="includes/ads/header.html"}
+        </div>
         {hook name="folder.content-top" folder="$folder_id"}
 
         {if $folder_id}

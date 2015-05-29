@@ -18,6 +18,9 @@
 {assign var="blog_folder" value="{config key="blog_folder"}"}
 <div class="main layout-col-2-right">
     <div class="col-main contents-list" role="main" aria-labelledby="main-label">
+        <div class="headerAd">
+            {include file="includes/ads/header.html"}
+        </div>
     {if $news_folder ne "0" && $news_folder ne ""}
         {ifloop rel="news.folder"}
             {loop type="folder" name="news.folder" id="$news_folder"}

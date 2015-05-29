@@ -109,9 +109,6 @@
                 <h1 class="title titlerow"><a href="{navigate to="index"}">{$store_name}</a></h1>
             </div>
             {hook name="main.navbar-primary"}
-            <div class="headerAd">
-                {include file="includes/ads/header.html"}
-            </div>
         </div>
     </header><!-- /.header -->
 

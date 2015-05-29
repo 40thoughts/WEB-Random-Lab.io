@@ -8927,10 +8927,6 @@ fieldset[disabled] .navbar .btn-link:focus {
     float: none;
   }
 }
-.nav-main {
-  border: 0;
-  border-radius: 4px 4px 0 0;
-}
 .label-new {
   display: inline;
   padding: .2em .6em .3em;
@@ -12020,15 +12016,12 @@ select[multiple].option .option-content .form-control {
 }
 .headerAd {
   text-align: center;
-  margin-bottom: 10px;
-  border-radius: 0 0 4px 4px;
+  margin-bottom: 20px;
   overflow: hidden;
-  height: 120px;
 }
 .asideAd {
-  height: 300px;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 /* Theme */
 /* @import "../themes/default/less/import"; */
