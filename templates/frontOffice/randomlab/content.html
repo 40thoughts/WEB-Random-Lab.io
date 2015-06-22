@@ -91,7 +91,10 @@
                 {/if}
             {/loop}
 
-            {hook name="content.content-bottom" content="$content_id"}
+            {ifhook rel="content.content-bottom"}
+                <hr>
+                {hook name="content.content-bottom" content="$content_id"}
+            {/ifhook}
         </article>
 
         <aside class="col-right" role="complementary" itemscope itemtype="http://schema.org/WPSideBar">
