@@ -16,18 +16,18 @@ use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Router;
+use Thelia\Condition\ConditionCollection;
 use Thelia\Condition\ConditionFactory;
 use Thelia\Condition\Implementation\ConditionInterface;
-use Thelia\Core\Event\Coupon\CouponDeleteEvent;
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Event\Coupon\CouponCreateOrUpdateEvent;
+use Thelia\Core\Event\Coupon\CouponDeleteEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Coupon\CouponFactory;
 use Thelia\Coupon\CouponManager;
-use Thelia\Condition\ConditionCollection;
 use Thelia\Coupon\Type\CouponInterface;
-use Thelia\Form\CouponCreationForm;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Log\Tlog;
 use Thelia\Model\Coupon;
@@ -199,7 +199,7 @@ class CouponController extends BaseAdminController
             $args['conditions'] = $this->cleanConditionForTemplate($conditions);
 
             // Setup the object form
-            $changeForm = new CouponCreationForm($this->getRequest(), 'form', $data);
+            $changeForm = $this->createForm(AdminForm::COUPON_CREATION, 'form', $data);
 
             // Pass it to the parser
             $this->getParserContext()->addForm($changeForm);
@@ -506,7 +506,8 @@ class CouponController extends BaseAdminController
                     'Coupon %s (ID ) ' . $log,
                     $couponEvent->getTitle(),
                     $couponEvent->getCouponModel()->getId()
-                )
+                ),
+                $couponEvent->getCouponModel()->getId()
             );
 
             if ($this->getRequest()->get('save_mode') == 'stay') {
@@ -800,7 +801,8 @@ class CouponController extends BaseAdminController
                 'Coupon %s (ID %s) conditions updated',
                 $couponEvent->getCouponModel()->getTitle(),
                 $couponEvent->getCouponModel()->getType()
-            )
+            ),
+            $couponEvent->getCouponModel()->getId()
         );
     }
 
@@ -819,7 +821,7 @@ class CouponController extends BaseAdminController
             $data["code"] = $coupon->getCode();
         }
 
-        return new CouponCreationForm($this->getRequest(), "form", $data, $options);
+        return $this->createForm(AdminForm::COUPON_CREATION, "form", $data, $options);
     }
 
     public function deleteAction()
@@ -847,7 +849,12 @@ class CouponController extends BaseAdminController
                 $this->adminLogAppend(
                     AdminResources::COUPON,
                     AccessManager::DELETE,
-                    sprintf("Coupon %s (ID %s) deleted", $deletedObject->getCode(), $deletedObject->getId())
+                    sprintf(
+                        "Coupon %s (ID %s) deleted",
+                        $deletedObject->getCode(),
+                        $deletedObject->getId()
+                    ),
+                    $deletedObject->getId()
                 );
             }
 

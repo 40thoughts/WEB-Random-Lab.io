@@ -17,6 +17,7 @@ use Assetic\FilterManager;
 use Assetic\Filter;
 use Assetic\Factory\AssetFactory;
 use Assetic\AssetWriter;
+use Thelia\Core\Template\Assets\Filter\LessDotPhpFilter;
 use Thelia\Model\ConfigQuery;
 use Thelia\Log\Tlog;
 use Symfony\Component\Filesystem\Filesystem;
@@ -31,6 +32,8 @@ class AsseticAssetManager implements AssetManagerInterface
     protected $debugMode;
 
     protected $source_file_extensions = array('less', 'js', 'coffee', 'html', 'tpl', 'htm', 'xml');
+
+    protected $assetFilters = [];
 
     public function __construct($debugMode)
     {
@@ -211,35 +214,19 @@ class AsseticAssetManager implements AssetManagerInterface
             foreach ($filter_list as $filter_name) {
                 $filter_name = trim($filter_name);
 
-                switch ($filter_name) {
-                    case 'less':
-                        $filterManager->set('less', new Filter\LessphpFilter());
-                        break;
+                foreach ($this->assetFilters as $filterIdentifier => $filterInstance) {
+                    if ($filterIdentifier == $filter_name) {
+                        $filterManager->set($filterIdentifier, $filterInstance);
 
-                    case 'sass':
-                        $filterManager->set('sass', new Filter\Sass\SassFilter());
-                        break;
-
-                    case 'cssembed':
-                        $filterManager->set('cssembed', new Filter\PhpCssEmbedFilter());
-                        break;
-
-                    case 'cssrewrite':
-                        $filterManager->set('cssrewrite', new Filter\CssRewriteFilter());
-                        break;
-
-                    case 'cssimport':
-                        $filterManager->set('cssimport', new Filter\CssImportFilter());
-                        break;
-
-                    case 'compass':
-                        $filterManager->set('compass', new Filter\CompassFilter());
-                        break;
-
-                    default:
-                        throw new \InvalidArgumentException("Unsupported Assetic filter: '$filter_name'");
-                        break;
+                        // No, goto is not evil.
+                        goto filterFound;
+                    }
                 }
+
+                throw new \InvalidArgumentException("Unsupported Assetic filter: '$filter_name'");
+                break;
+
+                filterFound:
             }
         } else {
             $filter_list = array();
@@ -327,5 +314,21 @@ class AsseticAssetManager implements AssetManagerInterface
         }
 
         return rtrim($outputUrl, '/') . '/' . trim($outputRelativeWebPath, '/') . '/' . trim($assetFileDirectoryInAssetDirectory, '/') . '/' . ltrim($assetTargetFilename, '/');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isDebugMode()
+    {
+        return $this->debugMode;
+    }
+
+    /**
+     * Register an asset filter
+     */
+    public function registerAssetFilter($filterIdentifier, $filter)
+    {
+        $this->assetFilters[$filterIdentifier] = $filter;
     }
 }

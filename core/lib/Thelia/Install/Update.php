@@ -19,7 +19,6 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use Thelia\Config\DatabaseConfiguration;
 use Thelia\Config\DefinePropel;
-use Thelia\Core\Thelia;
 use Thelia\Install\Exception\UpdateException;
 use Thelia\Install\Exception\UpToDateException;
 use Thelia\Log\Tlog;
@@ -27,7 +26,7 @@ use Thelia\Log\Tlog;
 /**
  * Class Update
  * @package Thelia\Install
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class Update
 {
@@ -51,14 +50,26 @@ class Update
         '12' => '2.0.5',
         '13' => '2.0.6',
         '14' => '2.0.7',
-        '15' => '2.1.0-alpha1',
-        '16' => '2.1.0-alpha2',
-        '17' => '2.1.0-beta1',
-        '18' => '2.1.0-beta2',
-        '19' => '2.1.0',
-        '20' => '2.1.1',
-        '21' => '2.1.2',
-        '22' => '2.1.3',
+        '15' => '2.0.8',
+        '16' => '2.0.9',
+        '17' => '2.0.10',
+        '18' => '2.1.0-alpha1',
+        '19' => '2.1.0-alpha2',
+        '20' => '2.1.0-beta1',
+        '21' => '2.1.0-beta2',
+        '22' => '2.1.0',
+        '23' => '2.1.1',
+        '24' => '2.1.2',
+        '25' => '2.1.3',
+        '26' => '2.1.4',
+        '27' => '2.1.5',
+        '28' => '2.1.6',
+        '29' => '2.2.0-alpha1',
+        '30' => '2.2.0-alpha2',
+        '31' => '2.2.0-beta1',
+        '32' => '2.2.0-beta2',
+        '33' => '2.2.0-beta3',
+        '34' => '2.2.0',
     );
 
     /** @var bool */
@@ -107,7 +118,6 @@ class Update
                 $dbConfig['user'],
                 $dbConfig['password']
             );
-
         } catch (\PDOException $ex) {
             throw new UpdateException('Wrong connection information' . $ex->getMessage());
         }
@@ -216,6 +226,14 @@ class Update
     public function backupDb()
     {
         $database = new Database($this->connection);
+
+        if (! $this->checkBackupIsPossible()) {
+            $message = 'Your database is too big for an automatic backup';
+
+            $this->log('error', $message);
+
+            throw new UpdateException($message);
+        }
 
         $this->backupFile = THELIA_ROOT . $this->backupDir . 'update.sql';
         $backupDir = THELIA_ROOT . $this->backupDir;
@@ -349,20 +367,9 @@ class Update
 
     public function getCurrentVersion()
     {
-        $currentVersion = null;
-        if (null !== $this->connection) {
-            try {
-                $stmt = $this->connection->prepare('SELECT value from config where name = ? LIMIT 1');
-                $stmt->execute(['thelia_version']);
-                if (false !== $row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $currentVersion = $row['value'];
-                }
-            } catch (PDOException $e) {
-                $this->log('error', sprintf('Error retrieving current version : %s', $e->getMessage()));
-                throw $e;
-            }
-        }
-        return $currentVersion;
+        $stmt = $this->connection->query("SELECT `value` FROM `config` WHERE name='thelia_version'");
+
+        return $stmt->fetchColumn();
     }
 
     public function setCurrentVersion($version)
@@ -379,6 +386,54 @@ class Update
                 throw $e;
             }
         }
+    }
+
+    /**
+     * Returns the database size in Mo
+     * @return float
+     * @throws \Exception
+     */
+    public function getDataBaseSize()
+    {
+        $stmt = $this->connection->query(
+            "SELECT sum(data_length) / 1024 / 1024 'size' FROM information_schema.TABLES WHERE table_schema = DATABASE() GROUP BY table_schema"
+        );
+
+        if ($stmt->rowCount()) {
+            return floatval($stmt->fetch(PDO::FETCH_OBJ)->size);
+        }
+
+        throw new \Exception('Impossible to calculate the database size');
+    }
+
+
+    /**
+     * Checks whether it is possible to make a data base backup
+     *
+     * @return bool
+     */
+    public function checkBackupIsPossible()
+    {
+        $size = 0;
+        if (preg_match('/^(\d+)(.)$/', ini_get('memory_limit'), $matches)) {
+            switch (strtolower($matches[2])) {
+                case 'k':
+                    $size = $matches[1] / 1024;
+                    break;
+                case 'm':
+                    $size = $matches[1];
+                    break;
+                case 'g':
+                    $size = $matches[1] * 1024;
+                    break;
+            }
+        }
+
+        if ($this->getDataBaseSize() > ($size - 64) / 8) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getLatestVersion()

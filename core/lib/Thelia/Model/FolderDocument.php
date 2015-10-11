@@ -8,6 +8,7 @@ use Symfony\Component\Routing\Router;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Files\FileModelParentInterface;
 use Thelia\Form\BaseForm;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Form\FolderDocumentModification;
 use Thelia\Model\Base\FolderDocument as BaseFolderDocument;
 use Propel\Runtime\Connection\ConnectionInterface;
@@ -93,19 +94,7 @@ class FolderDocument extends BaseFolderDocument implements BreadcrumbInterface, 
      */
     public function getUpdateFormId()
     {
-        return 'thelia.admin.folder.document.modification';
-    }
-
-    /**
-     * Get the form instance used to change this object information
-     *
-     * @param \Thelia\Core\HttpFoundation\Request $request
-     *
-     * @return BaseForm the form
-     */
-    public function getUpdateFormInstance(Request $request)
-    {
-        return new FolderDocumentModification($request);
+        return AdminForm::FOLDER_DOCUMENT_MODIFICATION;
     }
 
     /**
@@ -113,7 +102,14 @@ class FolderDocument extends BaseFolderDocument implements BreadcrumbInterface, 
      */
     public function getUploadDir()
     {
-        return THELIA_LOCAL_DIR . 'media'.DS.'documents'.DS.'folder';
+        $uploadDir = ConfigQuery::read('documents_library_path');
+        if ($uploadDir === null) {
+            $uploadDir = THELIA_LOCAL_DIR . 'media' . DS . 'documents';
+        } else {
+            $uploadDir = THELIA_ROOT . $uploadDir;
+        }
+
+        return $uploadDir . DS . 'folder';
     }
 
     /**
@@ -122,7 +118,7 @@ class FolderDocument extends BaseFolderDocument implements BreadcrumbInterface, 
      */
     public function getRedirectionUrl()
     {
-        return '/admin/folder/update/' . $this->getFolderId();
+        return '/admin/folders/update/' . $this->getFolderId();
     }
 
     /**

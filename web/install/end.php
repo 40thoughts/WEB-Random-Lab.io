@@ -27,27 +27,21 @@ try {
     if ($_SESSION['install']['step'] != $step && (empty($_POST['admin_login']) || empty($_POST['admin_password']) || ($_POST['admin_password'] != $_POST['admin_password_verif']) || strlen($_POST['admin_login']) < 3)) {
         $query = $_POST;
         $query["err"] = 0;
-
         if (empty($_POST['admin_login'])) {
             $query["err"] |= 1;
         }
-
         if (empty($_POST['admin_password'])) {
             $query["err"] |= 2;
         }
-
         if ($_POST['admin_password'] != $_POST['admin_password_verif']) {
             $query["err"] |= 4;
         }
-
         if (isset($query["admin_password"])) {
             unset($query["admin_password"]);
         }
-
         if (isset($query["admin_password_verif"])) {
             unset($query["admin_password_verif"]);
         }
-
         header(sprintf('location: config.php?%s', http_build_query($query)));
         exit; // Don't forget to exit, otherwise, the script will continue to run.
     }
@@ -83,6 +77,13 @@ try {
             ->filterByName('url_site')
             ->update(array('Value' => $_POST['url_site']));
 
+        $lang = \Thelia\Model\LangQuery::create()
+            ->findOneByLocale(empty($_POST['shop_locale']) ? "en_US" : $_POST['shop_locale'])
+        ;
+
+        if (null !== $lang) {
+            $lang->toggleDefault();
+        }
         $secret = \Thelia\Tools\TokenProvider::generateToken();
 
         \Thelia\Model\ConfigQuery::write('form.secret', $secret, 0, 0);
@@ -108,15 +109,6 @@ try {
         <p class="lead text-center">
             <?php echo $trans->trans('Thelia is now installed. Thank you !'); ?>
         </p>
-        <p class="lead text-center">
-            <?php echo $trans->trans('Don\'t forget to delete the web/install directory.'); ?>
-        </p>
-
-        <p class="lead text-center">
-            <a href="<?php echo $website_url; ?>/index.php/admin" id="admin_url"><?php echo $trans->trans('Go to back office'); ?></a>
-        </p>
-
-    </div>
 
 <?php
 $scriptHook = <<<SCRIPT
@@ -132,6 +124,39 @@ $scriptHook = <<<SCRIPT
     });
 </script>
 SCRIPT;
+
+ob_start();
+include('footer.php');
+$footerContent = ob_get_clean();
+
+    // Remove the install wizard
+    /*try {
+        $fs = new \Symfony\Component\Filesystem\Filesystem();
+        $fs->remove(THELIA_WEB_DIR . DS . 'install');
+
+        ?>
+        <div class="alert alert-success"><p><?php
+        echo $trans->trans('The install wizard directory will be removed');
+        ?></p></div><?php
+    } catch (\Symfony\Component\Filesystem\Exception\IOException $ex) {
+        ?>
+        <p class="lead text-center">
+            <?php echo $trans->trans('Don\'t forget to delete the web/install directory.'); ?>
+        </p>
+        <?php
+    }*/
+
+    ?>
+    <p class="lead text-center">
+        <?php echo $trans->trans('Don\'t forget to delete the web/install directory.'); ?>
+    </p>
+
+    <p class="lead text-center">
+        <a href="<?php echo $website_url; ?>/index.php/admin" id="admin_url"><?php echo $trans->trans('Go to back office'); ?></a>
+    </p>
+    <?php
+
+    echo $footerContent;
 }
 catch (\Exception $ex) {
     ?>
@@ -145,6 +170,6 @@ catch (\Exception $ex) {
         ); ?>
     </div>
 <?php
-}
 
-include 'footer.php';
+include('footer.php');
+}

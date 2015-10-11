@@ -12,6 +12,7 @@
 
 namespace Thelia\Core\Template\Loop;
 
+use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Thelia\Core\Template\Element\BaseI18nLoop;
 use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\Argument;
@@ -81,7 +82,9 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
             Argument::createAnyTypeArgument('source'),
             Argument::createIntTypeArgument('source_id'),
             Argument::createBooleanTypeArgument('force_return', true),
-            Argument::createBooleanTypeArgument('ignore_processing_errors', true)
+            Argument::createBooleanTypeArgument('ignore_processing_errors', true),
+            Argument::createAnyTypeArgument('query_namespace', 'Thelia\\Model'),
+            Argument::createBooleanTypeArgument('allow_zoom', false)
         );
 
         // Add possible image sources
@@ -103,7 +106,13 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
     {
         $object = ucfirst($source);
 
-        $queryClass   = sprintf("\Thelia\Model\%sImageQuery", $object);
+        $ns = $this->getQueryNamespace();
+
+        if ('\\' !== $ns[0]) {
+            $ns = '\\'.$ns;
+        }
+
+        $queryClass   = sprintf("%s\\%sImageQuery", $ns, $object);
         $filterMethod = sprintf("filterBy%sId", $object);
 
         // xxxImageQuery::create()
@@ -163,7 +172,9 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
             $id = $this->getId();
 
             if (is_null($source_id) && is_null($id)) {
-                throw new \InvalidArgumentException("If 'source' argument is specified, 'id' or 'source_id' argument should be specified");
+                throw new \InvalidArgumentException(
+                    "If 'source' argument is specified, 'id' or 'source_id' argument should be specified"
+                );
             }
 
             $search = $this->createSearchQuery($source, $source_id);
@@ -189,7 +200,9 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
         }
 
         if ($search == null) {
-            throw new \InvalidArgumentException(sprintf("Unable to find image source. Valid sources are %s", implode(',', $this->possible_sources)));
+            throw new \InvalidArgumentException(
+                sprintf("Unable to find image source. Valid sources are %s", implode(',', $this->possible_sources))
+            );
         }
 
         return $search;
@@ -237,6 +250,8 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
         $quality = $this->getQuality();
         $effects = $this->getEffects();
 
+        $event->setAllowZoom($this->getAllowZoom());
+
         if (! is_null($effects)) {
             $effects = explode(',', $effects);
         }
@@ -254,6 +269,13 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
             default:
                 $resize_mode = \Thelia\Action\Image::KEEP_IMAGE_RATIO;
 
+        }
+
+        $baseSourceFilePath = ConfigQuery::read('images_library_path');
+        if ($baseSourceFilePath === null) {
+            $baseSourceFilePath = THELIA_LOCAL_DIR . 'media' . DS . 'images';
+        } else {
+            $baseSourceFilePath = THELIA_ROOT . $baseSourceFilePath;
         }
 
         foreach ($loopResult->getResultDataCollection() as $result) {
@@ -279,15 +301,14 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
             }
 
             // Put source image file path
-            $source_filepath = sprintf(
-                "%s%s/%s/%s",
-                THELIA_ROOT,
-                ConfigQuery::read('images_library_path', 'local'.DS.'media'.DS.'images'),
+            $sourceFilePath = sprintf(
+                '%s/%s/%s',
+                $baseSourceFilePath,
                 $this->objectType,
                 $result->getFile()
             );
 
-            $event->setSourceFilepath($source_filepath);
+            $event->setSourceFilepath($sourceFilePath);
             $event->setCacheSubdirectory($this->objectType);
 
             $loopResultRow = new LoopResultRow($result);
@@ -295,7 +316,7 @@ class Image extends BaseI18nLoop implements PropelSearchLoopInterface
             $loopResultRow
                 ->set("ID", $result->getId())
                 ->set("LOCALE", $this->locale)
-                ->set("ORIGINAL_IMAGE_PATH", $source_filepath)
+                ->set("ORIGINAL_IMAGE_PATH", $sourceFilePath)
                 ->set("TITLE", $result->getVirtualColumn('i18n_TITLE'))
                 ->set("CHAPO", $result->getVirtualColumn('i18n_CHAPO'))
                 ->set("DESCRIPTION", $result->getVirtualColumn('i18n_DESCRIPTION'))

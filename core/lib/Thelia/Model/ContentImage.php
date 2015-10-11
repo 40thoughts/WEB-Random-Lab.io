@@ -9,6 +9,7 @@ use Thelia\Core\HttpFoundation\Request;
 use Thelia\Files\FileModelParentInterface;
 use Thelia\Form\BaseForm;
 use Thelia\Form\ContentImageModification;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Model\Base\ContentImage as BaseContentImage;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Thelia\Model\Breadcrumb\BreadcrumbInterface;
@@ -93,19 +94,7 @@ class ContentImage extends BaseContentImage implements BreadcrumbInterface, File
      */
     public function getUpdateFormId()
     {
-        return 'thelia.admin.content.image.modification';
-    }
-
-    /**
-     * Get the form instance used to change this object information
-     *
-     * @param \Thelia\Core\HttpFoundation\Request $request
-     *
-     * @return BaseForm the form
-     */
-    public function getUpdateFormInstance(Request $request)
-    {
-        return new ContentImageModification($request);
+        return AdminForm::CONTENT_IMAGE_MODIFICATION;
     }
 
     /**
@@ -113,7 +102,14 @@ class ContentImage extends BaseContentImage implements BreadcrumbInterface, File
      */
     public function getUploadDir()
     {
-        return THELIA_LOCAL_DIR . 'media'.DS.'images'.DS.'content';
+        $uploadDir = ConfigQuery::read('images_library_path');
+        if ($uploadDir === null) {
+            $uploadDir = THELIA_LOCAL_DIR . 'media' . DS . 'images';
+        } else {
+            $uploadDir = THELIA_ROOT . $uploadDir;
+        }
+
+        return $uploadDir . DS . 'content';
     }
 
     /**

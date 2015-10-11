@@ -18,7 +18,7 @@ use Thelia\Form\CustomerCreateForm as BaseCustomerCreateForm;
 /**
  * Class CustomerCreateForm
  * @package Thelia\Form\Api\Customer
- * @author manuel raynaud <manu@thelia.net>
+ * @author manuel raynaud <manu@raynaud.io>
  */
 class CustomerCreateForm extends BaseCustomerCreateForm
 {
@@ -27,11 +27,12 @@ class CustomerCreateForm extends BaseCustomerCreateForm
         parent::buildForm();
 
         $this->formBuilder
+            ->remove('email_confirm')
             ->remove('password_confirm')
             ->remove('agreed')
             ->add('lang', 'integer', [
                 'constraints' => [
-                    new NotBlank()
+                    new NotBlank(),
                 ]
             ]);
     }

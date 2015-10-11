@@ -16,16 +16,14 @@ use Thelia\Core\Event\Cache\CacheEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
-use Thelia\Form\Cache\AssetsFlushForm;
-use Thelia\Form\Cache\CacheFlushForm;
-use Thelia\Form\Cache\ImagesAndDocumentsCacheFlushForm;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Log\Tlog;
 use Thelia\Model\ConfigQuery;
 
 /**
  * Class CacheController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class AdvancedConfigurationController extends BaseAdminController
 {
@@ -44,7 +42,7 @@ class AdvancedConfigurationController extends BaseAdminController
             return $result;
         }
 
-        $form = new CacheFlushForm($this->getRequest());
+        $form = $this->createForm(AdminForm::CACHE_FLUSH);
         try {
             $this->validateForm($form);
 
@@ -63,7 +61,7 @@ class AdvancedConfigurationController extends BaseAdminController
             return $result;
         }
 
-        $form = new AssetsFlushForm($this->getRequest());
+        $form = $this->createForm(AdminForm::ASSETS_FLUSH);
         try {
             $this->validateForm($form);
 
@@ -82,14 +80,24 @@ class AdvancedConfigurationController extends BaseAdminController
             return $result;
         }
 
-        $form = new ImagesAndDocumentsCacheFlushForm($this->getRequest());
+        $form = $this->createForm(AdminForm::IMAGES_AND_DOCUMENTS_CACHE_FLUSH);
         try {
             $this->validateForm($form);
 
-            $event = new CacheEvent(THELIA_WEB_DIR . ConfigQuery::read('image_cache_dir_from_web_root', 'cache'));
+            $event = new CacheEvent(
+                THELIA_WEB_DIR . ConfigQuery::read(
+                    'image_cache_dir_from_web_root',
+                    'cache' . DS . 'images'
+                )
+            );
             $this->dispatch(TheliaEvents::CACHE_CLEAR, $event);
 
-            $event = new CacheEvent(THELIA_WEB_DIR . ConfigQuery::read('document_cache_dir_from_web_root', 'cache'));
+            $event = new CacheEvent(
+                THELIA_WEB_DIR . ConfigQuery::read(
+                    'document_cache_dir_from_web_root',
+                    'cache' . DS . 'documents'
+                )
+            );
             $this->dispatch(TheliaEvents::CACHE_CLEAR, $event);
         } catch (\Exception $e) {
             Tlog::getInstance()->addError(sprintf("Flush images and document error: %s", $e->getMessage()));

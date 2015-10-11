@@ -22,6 +22,7 @@ use Thelia\Core\Template\Element\LoopResultRow;
 use Thelia\Core\Template\Loop\Argument\Argument;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Template\Loop\Image;
+use Thelia\Type\EnumListType;
 use Thelia\Type\EnumType;
 use Thelia\Type\TypeCollection;
 
@@ -52,7 +53,15 @@ class CarouselLoop extends Image
                 ),
                 'none'
             ),
-            Argument::createAnyTypeArgument('effects')
+            new Argument(
+                'order',
+                new TypeCollection(
+                    new EnumListType(array('alpha', 'alpha-reverse', 'manual', 'manual-reverse', 'random'))
+                ),
+                'manual'
+            ),
+            Argument::createAnyTypeArgument('effects'),
+            Argument::createBooleanTypeArgument('allow_zoom', false)
         );
     }
 
@@ -115,6 +124,8 @@ class CarouselLoop extends Image
                 $event->setEffects($effects);
             }
 
+            $event->setAllowZoom($this->getAllowZoom());
+
             // Dispatch image processing event
             $this->dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
 
@@ -132,7 +143,7 @@ class CarouselLoop extends Image
                 ->set("ALT", $carousel->getVirtualColumn('i18n_ALT'))
                 ->set("URL", $carousel->getUrl())
                 ->set('POSITION', $carousel->getPosition())
-                ;
+            ;
 
             $loopResult->addRow($loopResultRow);
         }
@@ -151,7 +162,30 @@ class CarouselLoop extends Image
 
         $this->configureI18nProcessing($search, [ 'ALT', 'TITLE', 'CHAPO', 'DESCRIPTION', 'POSTSCRIPTUM' ]);
 
-        $search->orderByPosition();
+        $orders  = $this->getOrder();
+
+        // Results ordering
+        foreach ($orders as $order) {
+            switch ($order) {
+                case "alpha":
+                    $search->addAscendingOrderByColumn('i18n_TITLE');
+                    break;
+                case "alpha-reverse":
+                    $search->addDescendingOrderByColumn('i18n_TITLE');
+                    break;
+                case "manual-reverse":
+                    $search->orderByPosition(Criteria::DESC);
+                    break;
+                case "manual":
+                    $search->orderByPosition(Criteria::ASC);
+                    break;
+                case "random":
+                    $search->clearOrderByColumns();
+                    $search->addAscendingOrderByColumn('RAND()');
+                    break(2);
+                    break;
+            }
+        }
 
         return $search;
     }

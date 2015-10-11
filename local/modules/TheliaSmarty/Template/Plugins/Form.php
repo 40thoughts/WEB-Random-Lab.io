@@ -15,10 +15,13 @@ namespace TheliaSmarty\Template\Plugins;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\View\ChoiceView;
 use Symfony\Component\Form\FormConfigInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Thelia\Core\Form\TheliaFormFactoryInterface;
 use Thelia\Core\Form\Type\TheliaType;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Template\Element\Exception\ElementNotFoundException;
@@ -60,9 +63,6 @@ class Form extends AbstractSmartyPlugin
     private static $taggedFieldsStack = null;
     private static $taggedFieldsStackPosition = null;
 
-    /** @var  Request $request */
-    protected $request;
-
     /** @var  ContainerInterface */
     protected $container;
 
@@ -74,16 +74,18 @@ class Form extends AbstractSmartyPlugin
 
     protected $formDefinition = array();
 
+    /** @var array|TheliaFormFactoryInterface */
+    protected $formFactory = array();
+
     /** @var array The form collection stack */
     protected $formCollectionStack = array();
 
     /** @var array Counts collection loop in page */
     protected $formCollectionCount = array();
 
-    public function __construct(ContainerInterface $container, ParserContext $parserContext, ParserInterface $parser)
+    public function __construct(TheliaFormFactoryInterface $formFactory, ParserContext $parserContext, ParserInterface $parser)
     {
-        $this->container = $container;
-        $this->request = $container->get("request");
+        $this->formFactory = $formFactory;
         $this->parserContext = $parserContext;
         $this->parser = $parser;
     }
@@ -118,17 +120,15 @@ class Form extends AbstractSmartyPlugin
             $formClass = $this->formDefinition[$name];
 
             // Check if parser context contains our form
-            $form = $this->parserContext->getForm($formClass, $formType);
+            $instance = $this->parserContext->getForm($name, $formClass, $formType);
 
-            if (null != $form) {
-                // Re-use the form
-                $instance = $form;
-            } else {
-                // Create a new one
-                $class = new \ReflectionClass($formClass);
-
-                $instance = $class->newInstance($this->request, $formType, array(), array(), $this->container);
+            if (null === $instance) {
+                // If not, create a new instance
+                $instance = $this->formFactory->createForm($name);
             }
+
+            // Set the current form
+            $this->parserContext->pushCurrentForm($instance);
 
             $instance->createView();
 
@@ -138,6 +138,7 @@ class Form extends AbstractSmartyPlugin
             $template->assign("form_error", $instance->hasError() ? true : false);
             $template->assign("form_error_message", $instance->getErrorMessage());
         } else {
+            $this->parserContext->popCurrentForm();
             return $content;
         }
     }
@@ -216,6 +217,35 @@ class Form extends AbstractSmartyPlugin
                 /* access to choices */
                 if (isset($formFieldView->vars['choices'])) {
                     $template->assign("choices", $formFieldView->vars['choices']);
+                }
+            }
+        }
+
+        /* access to date */
+        if ($formFieldType instanceof DateType || $formFieldType instanceof DateTimeType || $formFieldType instanceof BirthdayType) {
+            if ('choice' === $formFieldConfig->getOption('widget')) {
+                /* access to years */
+                if ($formFieldConfig->getOption('years')) {
+                    $formFieldView->vars['years'] = $formFieldConfig->getOption('years');
+                    $template->assign("years", $formFieldView->vars['years']);
+                }
+
+                /* access to month */
+                if ($formFieldConfig->getOption('months')) {
+                    $formFieldView->vars['months'] = $formFieldConfig->getOption('months');
+                    $template->assign("months", $formFieldView->vars['months']);
+                }
+
+                /* access to days */
+                if ($formFieldConfig->getOption('days')) {
+                    $formFieldView->vars['days'] = $formFieldConfig->getOption('days');
+                    $template->assign("days", $formFieldView->vars['days']);
+                }
+
+                /* access to empty_value */
+                if ($formFieldConfig->getOption('empty_value')) {
+                    $formFieldView->vars['empty_value'] = $formFieldConfig->getOption('empty_value');
+                    $template->assign("empty_value", $formFieldView->vars['empty_value']);
                 }
             }
         }
@@ -330,7 +360,10 @@ class Form extends AbstractSmartyPlugin
         if (false !== $snippet_content = file_get_contents($snippet_path)) {
             $this->processFormField($params, $template);
 
-            $form              = $this->getParam($params, 'form', false);
+            if (null === $form = $this->getParam($params, 'form', null)) {
+                $form = $this->parserContext->getCurrentForm();
+            }
+
             $field_name        = $this->getParam($params, 'field', false);
             $field_extra_class = $this->getParam($params, 'extra_class', '');
             $field_value       = $this->getParam($params, 'value', '');
@@ -560,7 +593,7 @@ class Form extends AbstractSmartyPlugin
             $instance->getName()
         );
 
-        if (empty( $fieldData )) {
+        if (empty($fieldData)) {
             throw new \InvalidArgumentException(
                 sprintf(
                     "Field name '%s' not found in form %s children",
@@ -580,10 +613,14 @@ class Form extends AbstractSmartyPlugin
      */
     protected function getInstanceFromParams($params)
     {
-        $instance = $this->getParam($params, 'form');
+        if (null === $instance = $this->getParam($params, 'form')) {
+            $instance = $this->parserContext->getCurrentForm();
+        }
 
         if (null == $instance) {
-            throw new \InvalidArgumentException("Missing 'form' parameter in form arguments");
+            throw new \InvalidArgumentException(
+                "Missing 'form' parameter in form arguments, and no current form was found."
+            );
         }
 
         if (!$instance instanceof BaseForm) {
@@ -840,7 +877,7 @@ class Form extends AbstractSmartyPlugin
             $this->buildFieldName($formField),
             $formField->getViewData(),
             $formFieldConfig->getType(),
-            $formFieldConfig->getOptions()
+            $formField->createView()->vars
         );
 
         return '';

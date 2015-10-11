@@ -12,23 +12,22 @@
 
 namespace Thelia\Controller\Admin;
 
-use Thelia\Core\Security\Resource\AdminResources;
-use Thelia\Core\Event\Category\CategoryDeleteEvent;
-use Thelia\Core\Event\TheliaEvents;
-use Thelia\Core\Event\Category\CategoryUpdateEvent;
-use Thelia\Core\Event\Category\CategoryCreateEvent;
-use Thelia\Core\Security\AccessManager;
-use Thelia\Model\CategoryQuery;
-use Thelia\Form\CategoryModificationForm;
-use Thelia\Form\CategoryCreationForm;
-use Thelia\Core\Event\UpdatePositionEvent;
-use Thelia\Core\Event\Category\CategoryToggleVisibilityEvent;
-use Thelia\Core\Event\Category\CategoryDeleteContentEvent;
-use Thelia\Core\Event\Category\CategoryAddContentEvent;
-use Thelia\Model\FolderQuery;
-use Thelia\Model\ContentQuery;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Thelia\Core\Event\Category\CategoryAddContentEvent;
+use Thelia\Core\Event\Category\CategoryCreateEvent;
+use Thelia\Core\Event\Category\CategoryDeleteContentEvent;
+use Thelia\Core\Event\Category\CategoryDeleteEvent;
+use Thelia\Core\Event\Category\CategoryToggleVisibilityEvent;
+use Thelia\Core\Event\Category\CategoryUpdateEvent;
+use Thelia\Core\Event\TheliaEvents;
+use Thelia\Core\Event\UpdatePositionEvent;
+use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Model\CategoryAssociatedContentQuery;
+use Thelia\Model\CategoryQuery;
+use Thelia\Model\ContentQuery;
+use Thelia\Model\FolderQuery;
 
 /**
  * Manages categories
@@ -55,12 +54,12 @@ class CategoryController extends AbstractSeoCrudController
 
     protected function getCreationForm()
     {
-        return new CategoryCreationForm($this->getRequest());
+        return $this->createForm(AdminForm::CATEGORY_CREATION);
     }
 
     protected function getUpdateForm()
     {
-        return new CategoryModificationForm($this->getRequest());
+        return $this->createForm(AdminForm::CATEGORY_MODIFICATION);
     }
 
     protected function getCreationEvent($formData)
@@ -90,6 +89,7 @@ class CategoryController extends AbstractSeoCrudController
             ->setPostscriptum($formData['postscriptum'])
             ->setVisible($formData['visible'])
             ->setParent($formData['parent'])
+            ->setDefaultTemplateId($formData['default_template_id'])
         ;
 
         return $changeEvent;
@@ -114,6 +114,10 @@ class CategoryController extends AbstractSeoCrudController
         return $event->hasCategory();
     }
 
+    /**
+     * @param \Thelia\Model\Category $object
+     * @return \Thelia\Form\BaseForm
+     */
     protected function hydrateObjectForm($object)
     {
         // Hydrate the "SEO" tab form
@@ -121,18 +125,19 @@ class CategoryController extends AbstractSeoCrudController
 
         // The "General" tab form
         $data = array(
-            'id'           => $object->getId(),
-            'locale'       => $object->getLocale(),
-            'title'        => $object->getTitle(),
-            'chapo'        => $object->getChapo(),
-            'description'  => $object->getDescription(),
-            'postscriptum' => $object->getPostscriptum(),
-            'visible'      => $object->getVisible(),
-            'parent'       => $object->getParent()
+            'id'                    => $object->getId(),
+            'locale'                => $object->getLocale(),
+            'title'                 => $object->getTitle(),
+            'chapo'                 => $object->getChapo(),
+            'description'           => $object->getDescription(),
+            'postscriptum'          => $object->getPostscriptum(),
+            'visible'               => $object->getVisible(),
+            'parent'                => $object->getParent(),
+            'default_template_id'   => $object->getDefaultTemplateId()
         );
 
         // Setup the object form
-        return new CategoryModificationForm($this->getRequest(), "form", $data);
+        return $this->createForm(AdminForm::CATEGORY_MODIFICATION, "form", $data);
     }
 
     protected function getObjectFromEvent($event)
@@ -250,6 +255,10 @@ class CategoryController extends AbstractSeoCrudController
         return $this->nullResponse();
     }
 
+    /**
+     * @param CategoryDeleteEvent $deleteEvent
+     * @return null|\Symfony\Component\HttpFoundation\Response
+     */
     protected function performAdditionalDeleteAction($deleteEvent)
     {
         // Redirect to parent category list
@@ -258,6 +267,10 @@ class CategoryController extends AbstractSeoCrudController
         return $this->redirectToListTemplateWithId($category_id);
     }
 
+    /**
+     * @param CategoryUpdateEvent $updateEvent
+     * @return null|\Symfony\Component\HttpFoundation\Response
+     */
     protected function performAdditionalUpdateAction($updateEvent)
     {
         $response = null;
@@ -270,6 +283,10 @@ class CategoryController extends AbstractSeoCrudController
         return $response;
     }
 
+    /**
+     * @param UpdatePositionEvent $event
+     * @return null|\Symfony\Component\HttpFoundation\Response
+     */
     protected function performAdditionalUpdatePositionAction($event)
     {
         $category = CategoryQuery::create()->findPk($event->getObjectId());
@@ -293,7 +310,10 @@ class CategoryController extends AbstractSeoCrudController
             $list = ContentQuery::create()
                 ->joinWithI18n($this->getCurrentEditionLocale())
                 ->filterByFolder($folders, Criteria::IN)
-                ->filterById(CategoryAssociatedContentQuery::create()->select('content_id')->findByCategoryId($categoryId), Criteria::NOT_IN)
+                ->filterById(
+                    CategoryAssociatedContentQuery::create()->select('content_id')->findByCategoryId($categoryId),
+                    Criteria::NOT_IN
+                )
                 ->find();
             ;
 

@@ -21,10 +21,8 @@ use Thelia\Core\Event\Lang\LangUpdateEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Form\Exception\FormValidationException;
-use Thelia\Form\Lang\LangCreateForm;
-use Thelia\Form\Lang\LangDefaultBehaviorForm;
-use Thelia\Form\Lang\LangUpdateForm;
 use Thelia\Form\Lang\LangUrlEvent;
 use Thelia\Form\Lang\LangUrlForm;
 use Thelia\Log\Tlog;
@@ -34,7 +32,7 @@ use Thelia\Model\LangQuery;
 /**
  * Class LangController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class LangController extends BaseAdminController
 {
@@ -52,12 +50,12 @@ class LangController extends BaseAdminController
         foreach (LangQuery::create()->find() as $lang) {
             $data[LangUrlForm::LANG_PREFIX.$lang->getId()] = $lang->getUrl();
         }
-        $langUrlForm = new LangUrlForm($this->getRequest(), 'form', $data);
+        $langUrlForm = $this->createForm(AdminForm::LANG_URL, 'form', $data);
         $this->getParserContext()->addForm($langUrlForm);
 
         return $this->render('languages', array_merge($param, array(
             'lang_without_translation' => ConfigQuery::getDefaultLangWhenNoTranslationAvailable(),
-            'one_domain_per_lang' => ConfigQuery::read("one_domain_foreach_lang", false)
+            'one_domain_per_lang' => ConfigQuery::isMultiDomainActivated()
         )));
     }
 
@@ -71,7 +69,7 @@ class LangController extends BaseAdminController
 
         $lang = LangQuery::create()->findPk($lang_id);
 
-        $langForm = new LangUpdateForm($this->getRequest(), 'form', array(
+        $langForm = $this->createForm(AdminForm::LANG_UPDATE, 'form', array(
             'id' => $lang->getId(),
             'title' => $lang->getTitle(),
             'code' => $lang->getCode(),
@@ -98,7 +96,7 @@ class LangController extends BaseAdminController
 
         $error_msg = false;
 
-        $langForm = new LangUpdateForm($this->getRequest());
+        $langForm = $this->createForm(AdminForm::LANG_UPDATE);
 
         try {
             $form = $this->validateForm($langForm);
@@ -115,7 +113,17 @@ class LangController extends BaseAdminController
             }
 
             $changedObject = $event->getLang();
-            $this->adminLogAppend(AdminResources::LANGUAGE, AccessManager::UPDATE, sprintf("%s %s (ID %s) modified", 'Lang', $changedObject->getTitle(), $changedObject->getId()));
+            $this->adminLogAppend(
+                AdminResources::LANGUAGE,
+                AccessManager::UPDATE,
+                sprintf(
+                    "%s %s (ID %s) modified",
+                    'Lang',
+                    $changedObject->getTitle(),
+                    $changedObject->getId()
+                ),
+                $changedObject->getId()
+            );
 
             $response = $this->generateRedirectFromRoute('admin.configuration.languages');
         } catch (\Exception $ex) {
@@ -164,7 +172,17 @@ class LangController extends BaseAdminController
             }
 
             $changedObject = $event->getLang();
-            $this->adminLogAppend(AdminResources::LANGUAGE, AccessManager::UPDATE, sprintf("%s %s (ID %s) modified", 'Lang', $changedObject->getTitle(), $changedObject->getId()));
+            $this->adminLogAppend(
+                AdminResources::LANGUAGE,
+                AccessManager::UPDATE,
+                sprintf(
+                    "%s %s (ID %s) modified",
+                    'Lang',
+                    $changedObject->getTitle(),
+                    $changedObject->getId()
+                ),
+                $changedObject->getId()
+            );
         } catch (\Exception $e) {
             Tlog::getInstance()->error(sprintf("Error on changing default languages with message : %s", $e->getMessage()));
             $error = $e->getMessage();
@@ -183,7 +201,7 @@ class LangController extends BaseAdminController
             return $response;
         }
 
-        $createForm = new LangCreateForm($this->getRequest());
+        $createForm = $this->createForm(AdminForm::LANG_CREATE);
 
         $error_msg = false;
 
@@ -202,7 +220,17 @@ class LangController extends BaseAdminController
             }
 
             $createdObject = $createEvent->getLang();
-            $this->adminLogAppend(AdminResources::LANGUAGE, AccessManager::CREATE, sprintf("%s %s (ID %s) created", 'Lang', $createdObject->getTitle(), $createdObject->getId()));
+            $this->adminLogAppend(
+                AdminResources::LANGUAGE,
+                AccessManager::CREATE,
+                sprintf(
+                    "%s %s (ID %s) created",
+                    'Lang',
+                    $createdObject->getTitle(),
+                    $createdObject->getId()
+                ),
+                $createdObject->getId()
+            );
 
             $response = $this->generateRedirectFromRoute('admin.configuration.languages');
         } catch (FormValidationException $ex) {
@@ -268,7 +296,7 @@ class LangController extends BaseAdminController
 
         $error_msg = false;
 
-        $behaviorForm = new LangDefaultBehaviorForm($this->getRequest());
+        $behaviorForm = $this->createForm(AdminForm::LANG_DEFAULT_BEHAVIOR);
 
         try {
             $form = $this->validateForm($behaviorForm);
@@ -308,7 +336,7 @@ class LangController extends BaseAdminController
         }
 
         $error_msg = false;
-        $langUrlForm = new LangUrlForm($this->getRequest());
+        $langUrlForm = $this->createForm(AdminForm::LANG_URL);
 
         try {
             $form = $this->validateForm($langUrlForm);

@@ -12,22 +12,21 @@
 
 namespace Thelia\Controller\Admin;
 
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Event\Country\CountryCreateEvent;
 use Thelia\Core\Event\Country\CountryDeleteEvent;
 use Thelia\Core\Event\Country\CountryToggleDefaultEvent;
 use Thelia\Core\Event\Country\CountryUpdateEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
-use Thelia\Form\CountryCreationForm;
-use Thelia\Form\CountryModificationForm;
+use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Log\Tlog;
 use Thelia\Model\CountryQuery;
 
 /**
  * Class CustomerController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class CountryController extends AbstractCrudController
 {
@@ -49,7 +48,7 @@ class CountryController extends AbstractCrudController
      */
     protected function getCreationForm()
     {
-        return new CountryCreationForm($this->getRequest());
+        return $this->createForm(AdminForm::COUNTRY_CREATION);
     }
 
     /**
@@ -57,7 +56,7 @@ class CountryController extends AbstractCrudController
      */
     protected function getUpdateForm()
     {
-        return new CountryModificationForm($this->getRequest());
+        return $this->createForm(AdminForm::COUNTRY_MODIFICATION);
     }
 
     /**
@@ -76,7 +75,7 @@ class CountryController extends AbstractCrudController
             'isoalpha3' => $object->getIsoalpha3(),
         );
 
-        return new CountryModificationForm($this->getRequest(), 'form', $data);
+        return $this->createForm(AdminForm::COUNTRY_MODIFICATION, 'form', $data);
     }
 
     /**
@@ -111,7 +110,6 @@ class CountryController extends AbstractCrudController
             ->setIsocode($formData['isocode'])
             ->setIsoAlpha2($formData['isoalpha2'])
             ->setIsoAlpha3($formData['isoalpha3'])
-            ->setArea($formData['area'])
         ;
 
         return $event;

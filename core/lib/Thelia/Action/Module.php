@@ -42,7 +42,7 @@ use Thelia\Module\Validator\ModuleValidator;
 /**
  * Class Module
  * @package Thelia\Action
- * @author  Manuel Raynaud <manu@thelia.net>
+ * @author  Manuel Raynaud <manu@raynaud.io>
  */
 class Module extends BaseAction implements EventSubscriberInterface
 {
@@ -76,6 +76,7 @@ class Module extends BaseAction implements EventSubscriberInterface
         }
     }
 
+
     public function checkToggleActivation(ModuleToggleActivationEvent $event)
     {
         if (true === $event->isNoCheck()) {
@@ -85,8 +86,14 @@ class Module extends BaseAction implements EventSubscriberInterface
         if (null !== $module = ModuleQuery::create()->findPk($event->getModuleId())) {
             try {
                 if ($module->getActivate() == BaseModule::IS_ACTIVATED) {
+                    if ($event->isRecursive()) {
+                        $this->recursiveDeactivation($event);
+                    }
                     $this->checkDeactivation($module);
                 } else {
+                    if ($event->isRecursive()) {
+                        $this->recursiveActivation($event);
+                    }
                     $this->checkActivation($module);
                 }
             } catch (\Exception $ex) {
@@ -99,9 +106,9 @@ class Module extends BaseAction implements EventSubscriberInterface
     /**
      * Check if module can be activated : supported version of Thelia, module dependencies.
      *
-     * @param \Thelia\Model\Module $module
-     * @throws Exception if activation fails.
-     * @return bool true if the module can be activated, otherwise false
+     * @param  \Thelia\Model\Module $module
+     * @throws Exception            if activation fails.
+     * @return bool                 true if the module can be activated, otherwise false
      */
     private function checkActivation($module)
     {
@@ -120,7 +127,7 @@ class Module extends BaseAction implements EventSubscriberInterface
      * could have dependencies to this module
      *
      * @param  \Thelia\Model\Module $module
-     * @return bool true if the module can be deactivated, otherwise false
+     * @return bool                 true if the module can be deactivated, otherwise false
      */
     private function checkDeactivation($module)
     {
@@ -130,14 +137,14 @@ class Module extends BaseAction implements EventSubscriberInterface
 
         if (count($modules) > 0) {
             $moduleList = implode(', ', array_column($modules, 'code'));
+
             $message = (count($modules) == 1)
                 ? Translator::getInstance()->trans(
                     '%s has dependency to module %s. You have to deactivate this module before.'
                 )
                 : Translator::getInstance()->trans(
                     '%s have dependencies to module %s. You have to deactivate these modules before.'
-                )
-            ;
+                );
 
             throw new ModuleException(
                 sprintf($message, $moduleList, $moduleValidator->getModuleDefinition()->getCode())
@@ -145,6 +152,53 @@ class Module extends BaseAction implements EventSubscriberInterface
         }
 
         return true;
+    }
+
+
+    /**
+     * Get dependencies of the current module and activate it if needed
+     *
+     * @param ModuleToggleActivationEvent $event
+     *
+     */
+    public function recursiveActivation(ModuleToggleActivationEvent $event)
+    {
+        if (null !== $module = ModuleQuery::create()->findPk($event->getModuleId())) {
+            $moduleValidator = new ModuleValidator($module->getAbsoluteBaseDir());
+            $dependencies = $moduleValidator->getCurrentModuleDependencies();
+            foreach ($dependencies as $defMod) {
+                $submodule = ModuleQuery::create()
+                    ->findOneByCode($defMod["code"]);
+                if ($submodule && $submodule->getActivate() != BaseModule::IS_ACTIVATED) {
+                    $subevent = new ModuleToggleActivationEvent($submodule->getId());
+                    $subevent->setRecursive(true);
+                    $event->getDispatcher()->dispatch(TheliaEvents::MODULE_TOGGLE_ACTIVATION, $subevent);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get modules having current module in dependence and deactivate it if needed
+     *
+     * @param ModuleToggleActivationEvent $event
+     *
+     */
+    public function recursiveDeactivation(ModuleToggleActivationEvent $event)
+    {
+        if (null !== $module = ModuleQuery::create()->findPk($event->getModuleId())) {
+            $moduleValidator = new ModuleValidator($module->getAbsoluteBaseDir());
+            $dependencies = $moduleValidator->getModulesDependOf(true);
+            foreach ($dependencies as $defMod) {
+                $submodule = ModuleQuery::create()
+                    ->findOneByCode($defMod["code"]);
+                if ($submodule && $submodule->getActivate() == BaseModule::IS_ACTIVATED) {
+                    $subevent = new ModuleToggleActivationEvent($submodule->getId());
+                    $subevent->setRecursive(true);
+                    $event->getDispatcher()->dispatch(TheliaEvents::MODULE_TOGGLE_ACTIVATION, $subevent);
+                }
+            }
+        }
     }
 
     public function delete(ModuleDeleteEvent $event)
@@ -166,8 +220,7 @@ class Module extends BaseAction implements EventSubscriberInterface
                 // If the module is referenced by an order, display a meaningful error
                 // instead of 'delete cannot delete' caused by a constraint violation.
                 // FIXME: we hav to find a way to delete modules used by order.
-                if (
-                    OrderQuery::create()->filterByDeliveryModuleId($module->getId())->count() > 0
+                if (OrderQuery::create()->filterByDeliveryModuleId($module->getId())->count() > 0
                     ||
                     OrderQuery::create()->filterByPaymentModuleId($module->getId())->count() > 0
                 ) {
@@ -390,7 +443,7 @@ class Module extends BaseAction implements EventSubscriberInterface
         return [
             TheliaEvents::MODULE_TOGGLE_ACTIVATION => [
                 ['checkToggleActivation', 255],
-                ['toggleActivation', 128]
+                ['toggleActivation', 128],
             ],
             TheliaEvents::MODULE_UPDATE_POSITION => ['updatePosition', 128],
             TheliaEvents::MODULE_DELETE => ['delete', 128],

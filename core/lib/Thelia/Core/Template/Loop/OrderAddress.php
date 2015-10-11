@@ -16,11 +16,9 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Thelia\Core\Template\Element\BaseLoop;
 use Thelia\Core\Template\Element\LoopResult;
 use Thelia\Core\Template\Element\LoopResultRow;
-
 use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Template\Loop\Argument\Argument;
-
 use Thelia\Model\OrderAddressQuery;
 
 /**
@@ -74,6 +72,7 @@ class OrderAddress extends BaseLoop implements PropelSearchLoopInterface
                 ->set("CITY", $orderAddress->getCity())
                 ->set("COUNTRY", $orderAddress->getCountryId())
                 ->set("PHONE", $orderAddress->getPhone())
+                ->set("CELLPHONE", $orderAddress->getCellphone())
             ;
             $this->addOutputFields($loopResultRow, $orderAddress);
 

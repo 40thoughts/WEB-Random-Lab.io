@@ -12,35 +12,29 @@
 
 namespace Thelia\Controller;
 
+use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Thelia\Core\Event\PdfEvent;
-use Thelia\Core\Event\TheliaEvents;
-use Thelia\Core\HttpFoundation\Response;
-use Symfony\Component\DependencyInjection\ContainerAware;
-
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Exception\InvalidParameterException;
 use Symfony\Component\Routing\Exception\MissingMandatoryParametersException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Router;
-
-use Thelia\Core\Template\TemplateHelper;
+use Thelia\Core\Event\ActionEvent;
+use Thelia\Core\Event\DefaultActionEvent;
+use Thelia\Core\Event\PdfEvent;
+use Thelia\Core\Event\TheliaEvents;
+use Thelia\Core\HttpFoundation\Response;
+use Thelia\Core\Template\ParserContext;
 use Thelia\Core\Translation\Translator;
 use Thelia\Exception\TheliaProcessException;
-use Thelia\Form\FirewallForm;
+use Thelia\Form\BaseForm;
+use Thelia\Form\Exception\FormValidationException;
 use Thelia\Log\Tlog;
 use Thelia\Mailer\MailerFactory;
 use Thelia\Model\OrderQuery;
-
 use Thelia\Tools\Redirect;
-use Thelia\Core\Template\ParserContext;
-use Thelia\Core\Event\ActionEvent;
-
-use Thelia\Form\BaseForm;
-use Thelia\Form\Exception\FormValidationException;
-use Thelia\Core\Event\DefaultActionEvent;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Thelia\Tools\URL;
 
 /**
@@ -49,7 +43,7 @@ use Thelia\Tools\URL;
  * user is not yet logged in, or back-office home page if the user is logged in.
  *
  * @author Franck Allimant <franck@cqfdev.fr>
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
 
@@ -63,7 +57,7 @@ abstract class BaseController extends ContainerAware
 
     protected $translator;
 
-    protected static $formDefinition;
+    protected $templateHelper;
 
     /** @var bool Fallback on default template when setting the templateDefinition */
     protected $useFallbackTemplate = false;
@@ -94,14 +88,14 @@ abstract class BaseController extends ContainerAware
      * @param $status
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function pdfResponse($pdf, $fileName, $status = 200)
+    protected function pdfResponse($pdf, $fileName, $status = 200, $browser = false)
     {
         return Response::create(
             $pdf,
             $status,
             array(
                 'Content-type' => "application/pdf",
-                'Content-Disposition' => sprintf('Attachment;filename=%s.pdf', $fileName),
+                'Content-Disposition' => $browser == false ? sprintf('Attachment;filename=%s.pdf', $fileName) : '',
             )
         );
     }
@@ -197,6 +191,18 @@ abstract class BaseController extends ContainerAware
     }
 
     /**
+     * @return \Thelia\Core\Template\TemplateHelperInterface
+     */
+    protected function getTemplateHelper()
+    {
+        if (null === $this->templateHelper) {
+            $this->templateHelper = $this->container->get("thelia.template_helper");
+        }
+
+        return $this->templateHelper;
+    }
+
+    /**
      * Get all errors that occurred in a form
      *
      * @param  \Symfony\Component\Form\Form $form
@@ -204,22 +210,7 @@ abstract class BaseController extends ContainerAware
      */
     protected function getErrorMessages(Form $form)
     {
-        $errors = '';
-
-        foreach ($form->getErrors() as $key => $error) {
-            $errors .= $error->getMessage() . ', ';
-        }
-
-        /** @var Form $child */
-        foreach ($form->all() as $child) {
-            if (!$child->isValid()) {
-                $fieldName = $child->getConfig()->getOption('label', $child->getName());
-
-                $errors .= sprintf("[%s] %s, ", $fieldName, $this->getErrorMessages($child));
-            }
-        }
-
-        return rtrim($errors, ', ');
+        return $this->getTheliaFormValidator()->getErrorMessages($form);
     }
 
     /**
@@ -232,66 +223,36 @@ abstract class BaseController extends ContainerAware
      */
     protected function validateForm(BaseForm $aBaseForm, $expectedMethod = null)
     {
-        $form = $aBaseForm->getForm();
+        $form = $this->getTheliaFormValidator()->validateForm($aBaseForm, $expectedMethod);
 
-        if ($expectedMethod == null || $aBaseForm->getRequest()->isMethod($expectedMethod)) {
-            $form->handleRequest($aBaseForm->getRequest());
+        // At this point, the form is valid (no exception was thrown). Remove it from the error context.
+        $this->getParserContext()->clearForm($aBaseForm);
 
-            if ($form->isValid()) {
-                $env = $this->container->getParameter("kernel.environment");
-
-                if ($aBaseForm instanceof FirewallForm && !$aBaseForm->isFirewallOk($env)) {
-                    throw new FormValidationException(
-                        $this->getTranslator()->trans(
-                            "You've submitted this form too many times. ".
-                            "Further submissions will be ignored during %time",
-                            [
-                                "%time" => $aBaseForm->getWaitingTime(),
-                            ]
-                        )
-                    );
-                }
-
-                return $form;
-            } else {
-                $errorMessage = null;
-                if ($form->get("error_message")->getData() != null) {
-                    $errorMessage = $form->get("error_message")->getData();
-                } else {
-                    $errorMessage = sprintf(
-                        $this->getTranslator()->trans(
-                            "Missing or invalid data: %s"
-                        ),
-                        $this->getErrorMessages($form)
-                    );
-                }
-
-                throw new FormValidationException($errorMessage);
-            }
-        } else {
-            throw new FormValidationException(
-                sprintf(
-                    $this->getTranslator()->trans(
-                        "Wrong form method, %s expected."
-                    ),
-                    $expectedMethod
-                )
-            );
-        }
+        return $form;
     }
 
     /**
-     * @param $order_id
-     * @param $fileName
+     * @return \Thelia\Core\Form\TheliaFormValidatorInterface
+     */
+    protected function getTheliaFormValidator()
+    {
+        return $this->container->get("thelia.form_validator");
+    }
+
+    /**
+     * @param int $order_id
+     * @param string $fileName
+     * @param bool $checkOrderStatus
+     * @param bool $checkAdminUser
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function generateOrderPdf($order_id, $fileName)
+    protected function generateOrderPdf($order_id, $fileName, $checkOrderStatus = true, $checkAdminUser = true, $browser = false)
     {
         $order = OrderQuery::create()->findPk($order_id);
 
         // check if the order has the paid status
-        if (!$this->getSecurityContext()->hasAdminUser()) {
-            if (!$order->isPaid()) {
+        if ($checkAdminUser && !$this->getSecurityContext()->hasAdminUser()) {
+            if ($checkOrderStatus && !$order->isPaid(false)) {
                 throw new NotFoundHttpException();
             }
         }
@@ -301,7 +262,7 @@ abstract class BaseController extends ContainerAware
             array(
                 'order_id' => $order_id
             ),
-            TemplateHelper::getInstance()->getActivePdfTemplate()
+            $this->getTemplateHelper()->getActivePdfTemplate()
         );
 
         try {
@@ -310,7 +271,7 @@ abstract class BaseController extends ContainerAware
             $this->dispatch(TheliaEvents::GENERATE_PDF, $pdfEvent);
 
             if ($pdfEvent->hasPdf()) {
-                return $this->pdfResponse($pdfEvent->getPdf(), $order->getRef());
+                return $this->pdfResponse($pdfEvent->getPdf(), $order->getRef(), 200, $browser);
             }
         } catch (\Exception $e) {
             Tlog::getInstance()->error(
@@ -337,11 +298,34 @@ abstract class BaseController extends ContainerAware
      */
     protected function retrieveSuccessUrl(BaseForm $form = null)
     {
+        return $this->retrieveFormBasedUrl('success_url', $form);
+    }
+
+    /**
+     * Search error url in a form if present, in the query string otherwise
+     *
+     * @param  BaseForm          $form
+     * @return mixed|null|string
+     */
+    protected function retrieveErrorUrl(BaseForm $form = null)
+    {
+        return $this->retrieveFormBasedUrl('error_url', $form);
+    }
+    /**
+     * Search url in a form parameter, or in a request parameter.
+     *
+     * @param  string $parameterName the form parameter name, or request parameter name.
+     * @param  BaseForm  $form the form
+     * @return mixed|null|string
+     */
+    protected function retrieveFormBasedUrl($parameterName, BaseForm $form = null)
+    {
         $url = null;
+
         if ($form != null) {
-            $url = $form->getSuccessUrl();
+            $url = $form->getFormDefinedUrl($parameterName);
         } else {
-            $url = $this->getRequest()->get("success_url");
+            $url = $this->getRequest()->get($parameterName);
         }
 
         return $url;
@@ -391,12 +375,26 @@ abstract class BaseController extends ContainerAware
      */
     protected function generateSuccessRedirect(BaseForm $form = null)
     {
-        $response = null;
         if (null !== $url = $this->retrieveSuccessUrl($form)) {
-            $response = $this->generateRedirect($url);
+            return $this->generateRedirect($url);
         }
 
-        return $response;
+        return null;
+    }
+
+    /**
+     * create an instance of RedirectReponse if a success url is present, return null otherwise
+     *
+     * @param  BaseForm                                        $form
+     * @return null|\Symfony\Component\HttpFoundation\Response
+     */
+    protected function generateErrorRedirect(BaseForm $form = null)
+    {
+        if (null !== $url = $this->retrieveErrorUrl($form)) {
+            return $this->generateRedirect($url);
+        }
+
+        return null;
     }
 
     /**
@@ -554,21 +552,19 @@ abstract class BaseController extends ContainerAware
      */
     public function createForm($name, $type = "form", array $data = array(), array $options = array())
     {
-        if (static::$formDefinition === null) {
-            static::$formDefinition = $this->container->getParameter("thelia.parser.forms");
-        }
-
         if (empty($name)) {
             $name = static::EMPTY_FORM_NAME;
         }
 
-        if (!isset(static::$formDefinition[$name])) {
-            throw new \OutOfBoundsException(
-                sprintf("The form '%s' doesn't exist", $name)
-            );
-        }
+        return $this->getTheliaFormFactory()->createForm($name, $type, $data, $options);
+    }
 
-        return new static::$formDefinition[$name]($this->getRequest(), $type, $data, $options, $this->container);
+    /**
+     * @return \Thelia\Core\Form\TheliaFormFactoryInterface
+     */
+    protected function getTheliaFormFactory()
+    {
+        return $this->container->get("thelia.form_factory");
     }
 
     /**
@@ -578,6 +574,13 @@ abstract class BaseController extends ContainerAware
     {
         return $this->container;
     }
+
+    /**
+     * Return controller type
+     *
+     * @return string
+     */
+    abstract public function getControllerType();
 
     /**
      * @param null|mixed $template

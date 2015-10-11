@@ -20,7 +20,6 @@ use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Element\SearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\Argument;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
-
 use Thelia\Model\CustomerQuery;
 use Thelia\Model\Map\CustomerTableMap;
 use Thelia\Model\Map\OrderAddressTableMap;
@@ -268,8 +267,9 @@ class Order extends BaseLoop implements SearchLoopInterface, PropelSearchLoopInt
                 ->set('TOTAL_TAX', $tax)
                 ->set('TOTAL_AMOUNT', $amount - $tax)
                 ->set('TOTAL_TAXED_AMOUNT', $amount)
-                ->set('HAS_PAID_STATUS', $order->isPaid(true))
-                ->set('IS_PAID', $order->isPaid())
+                ->set('WEIGHT', $order->getWeight())
+                ->set('HAS_PAID_STATUS', $order->isPaid())
+                ->set('IS_PAID', $order->isPaid(false))
                 ->set('IS_CANCELED', $order->isCancelled())
                 ->set('IS_NOT_PAID', $order->isNotPaid())
                 ->set('IS_SENT', $order->isSent())

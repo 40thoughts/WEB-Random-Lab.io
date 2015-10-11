@@ -9,6 +9,7 @@ use Thelia\Files\FileModelInterface;
 use Thelia\Files\FileModelParentInterface;
 use Thelia\Form\BaseForm;
 use Thelia\Form\Brand\BrandDocumentModification;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Model\Base\BrandDocument as BaseBrandDocument;
 use Thelia\Model\Breadcrumb\BrandBreadcrumbTrait;
 use Thelia\Model\Breadcrumb\BreadcrumbInterface;
@@ -85,19 +86,7 @@ class BrandDocument extends BaseBrandDocument implements BreadcrumbInterface, Fi
      */
     public function getUpdateFormId()
     {
-        return 'thelia.admin.brand.document.modification';
-    }
-
-    /**
-     * Get the form instance used to change this object information
-     *
-     * @param \Thelia\Core\HttpFoundation\Request $request
-     *
-     * @return BaseForm the form
-     */
-    public function getUpdateFormInstance(Request $request)
-    {
-        return new BrandDocumentModification($request);
+        return AdminForm::BRAND_DOCUMENT_MODIFICATION;
     }
 
     /**
@@ -105,7 +94,14 @@ class BrandDocument extends BaseBrandDocument implements BreadcrumbInterface, Fi
      */
     public function getUploadDir()
     {
-        return THELIA_LOCAL_DIR . 'media'.DS.'documents'.DS.'brand';
+        $uploadDir = ConfigQuery::read('documents_library_path');
+        if ($uploadDir === null) {
+            $uploadDir = THELIA_LOCAL_DIR . 'media' . DS . 'documents';
+        } else {
+            $uploadDir = THELIA_ROOT . $uploadDir;
+        }
+
+        return $uploadDir . DS . 'brand';
     }
 
     /**

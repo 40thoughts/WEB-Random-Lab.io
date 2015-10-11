@@ -209,7 +209,7 @@
                 <h3>{intl l="Delivery address"}</h3>
 				{ifhook rel="invoice.delivery-address"}
                     {* delivery module can customize the delivery address *}
-                    {hook name="invoice.delivery-address" module={order attr="delivery_module"} order=$order_id}
+                    {hook name="invoice.delivery-address" module={$DELIVERY_MODULE} order=$order_id}
                 {/ifhook}
                 {elsehook rel="invoice.delivery-address"}                
 				<p>
@@ -282,14 +282,12 @@
                 <td><p class="align-center">{$QUANTITY}</p></td>
                 <td><p class="align-right">{format_money number={$realTaxedPrice * $QUANTITY} symbol=$orderCurrency}</p></td>
             </tr>
+
+            {hook name="invoice.order-product" order="{$order_id}" order_product="{$ID}"}
         {/loop}
     </table>
 
 {hook name="invoice.after-products" order=$order_id}
-
-    {if $POSTAGE_TAX_RULE_TITLE}
-        {$taxes[$POSTAGE_TAX_RULE_TITLE][] = $POSTAGE_TAX}
-    {/if}
 
     <table cellspacing="0" cellpadding="0" style="padding-top: 5mm;">
         <col style="width: 60%; padding: 1mm;" />
@@ -302,10 +300,15 @@
                     <span>{loop name="payment-module" type="module" id=$PAYMENT_MODULE}{$TITLE}{/loop}</span>
                 </p>
 
+                {hook name="invoice.after-payment-module" order=$order_id module_id=$PAYMENT_MODULE}
+
+
                 <h3>{intl l="Delivery module"}</h3>
                 <p>
                     <span>{loop name="delivery-module" type="module" id=$DELIVERY_MODULE}{$TITLE}{/loop}</span>
                 </p>
+
+                {hook name="invoice.after-delivery-module" order=$order_id module_id=$DELIVERY_MODULE}
 
             </td>
             <td>
@@ -320,7 +323,7 @@
                     {/if}
                     <tr>
                         <td class="table-3-1"><p>{intl l="Total without tax"}</p></td>
-                        <td class="table-3-1 align-right"><p>{format_money number={$TOTAL_AMOUNT - $POSTAGE} symbol=$orderCurrency}</p></td>
+                        <td class="table-3-1 align-right"><p>{format_money number={$TOTAL_AMOUNT - $POSTAGE_UNTAXED} symbol=$orderCurrency}</p></td>
                     </tr>
                     {strip}
                         {capture name="tax"}
@@ -332,22 +335,28 @@
                                 {if $_price_taxe_ != 0}
                                 <tr>
                                     <td class="table-3-2"><p>{$name}</p></td>
-                                    <td class="table-3-2 align-right"><P>{format_money number=$_price_taxe_ symbol=$orderCurrency}</P></td>
+                                    <td class="table-3-2 align-right"><p>{format_money number=$_price_taxe_ symbol=$orderCurrency}</p></td>
                                 </tr>
                                 {/if}
                             {/foreach}
+                            {if $POSTAGE_TAX != 0}
+                            <tr>
+                                <td class="table-3-2"><p>{intl l="Postage"}<br>{$POSTAGE_TAX_RULE_TITLE}</p></td>
+                                <td class="table-3-2 align-right"><p>{format_money number=$POSTAGE_TAX symbol=$orderCurrency}</p></td>
+                            </tr>
+                            {/if}
                         {/capture}
                     {/strip}
                     {if $smarty.capture.tax ne ""}
                     <tr>
                         <td class="table-3-1"><p>{intl l="Tax"}</p></td>
-                        <td class="table-3-1 align-right"><P>{format_money number=$TOTAL_TAX symbol=$orderCurrency}</P></td>
+                        <td class="table-3-1 align-right"><p>{format_money number=$TOTAL_TAX symbol=$orderCurrency}</p></td>
                     </tr>
                     {$smarty.capture.tax nofilter}
                     {/if}
                     <tr>
                         <td class="table-3-1"><p>{intl l="Total with tax"}</p></td>
-                        <td class="table-3-1 align-right"><P>{format_money number={$TOTAL_TAXED_AMOUNT - $POSTAGE_UNTAXED} symbol=$orderCurrency}</P></td>
+                        <td class="table-3-1 align-right"><p>{format_money number={$TOTAL_TAXED_AMOUNT - $POSTAGE} symbol=$orderCurrency}</p></td>
                     </tr>
                     <tr>
                         <td class="table-3-1"><p>{intl l="Postage"}</p></td>

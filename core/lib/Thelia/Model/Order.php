@@ -85,7 +85,7 @@ class Order extends BaseOrder
 
     public function preSave(ConnectionInterface $con = null)
     {
-        if ($this->isPaid() && null === $this->getInvoiceDate()) {
+        if ($this->isPaid(false) && null === $this->getInvoiceDate()) {
             $this
                 ->setInvoiceDate(time());
         }
@@ -122,8 +122,8 @@ class Order extends BaseOrder
     /**
      * Compute this order amount.
      *
-     * The order amount amount is only avaible once the order is persisted in database.
-     * Duting invoice process, use all cart methods instead of order methods (the order doest not exists at this moment)
+     * The order amount is only available once the order is persisted in database.
+     * During invoice process, use all cart methods instead of order methods (the order doest not exists at this moment)
      *
      * @param  float|int $tax             (output only) returns the tax amount for this order
      * @param  bool      $includePostage  if true, the postage cost is included to the total
@@ -171,6 +171,26 @@ class Order extends BaseOrder
         }
 
         return $total;
+    }
+
+    /**
+     * Compute this order weight.
+     *
+     * The order weight is only available once the order is persisted in database.
+     * During invoice process, use all cart methods instead of order methods (the order doest not exists at this moment)
+     *
+     * @return float
+     */
+    public function getWeight()
+    {
+        $weight = 0;
+
+        /* browse all products */
+        foreach ($this->getOrderProducts() as $orderProduct) {
+            $weight += $orderProduct->getQuantity() * (double)$orderProduct->getWeight();
+        }
+
+        return $weight;
     }
 
     /**
@@ -233,11 +253,11 @@ class Order extends BaseOrder
     /**
      * Check if the current status of this order is PAID
      *
-     * @param bool $exact if true, the method will chek if the current status is exactly OrderStatus::CODE_PAID.
-     * if false, it will check if the order has been paid, whatever the current status is. The default is false.
+     * @param bool $exact if true, the method will check if the current status is exactly OrderStatus::CODE_PAID.
+     * if false, it will check if the order has been paid, whatever the current status is. The default is true.
      * @return bool true if this order is PAID, false otherwise.
      */
-    public function isPaid($exact = false)
+    public function isPaid($exact = true)
     {
         return $this->hasStatusHelper(
             $exact ?
@@ -298,6 +318,24 @@ class Order extends BaseOrder
     public function isCancelled()
     {
         return $this->hasStatusHelper(OrderStatus::CODE_CANCELED);
+    }
+
+    /**
+     * Set the status of the current order to REFUNDED
+     */
+    public function setRefunded()
+    {
+        $this->setStatusHelper(OrderStatus::CODE_REFUNDED);
+    }
+
+    /**
+     * Check if the current status of this order is REFUNDED
+     *
+     * @return bool true if this order is CANCELED, false otherwise.
+     */
+    public function isRefunded()
+    {
+        return $this->hasStatusHelper(OrderStatus::CODE_REFUNDED);
     }
 
     /**

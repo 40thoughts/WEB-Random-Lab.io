@@ -16,12 +16,10 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Thelia\Core\Template\Element\BaseI18nLoop;
 use Thelia\Core\Template\Element\LoopResult;
 use Thelia\Core\Template\Element\LoopResultRow;
-
 use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Element\SearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Template\Loop\Argument\Argument;
-
 use Thelia\Model\CategoryQuery;
 use Thelia\Type\TypeCollection;
 use Thelia\Type;
@@ -49,7 +47,7 @@ use Thelia\Model\ProductQuery;
  *
  * Class Category
  * @package Thelia\Core\Template\Loop
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  * @author Etienne Roudeix <eroudeix@openstudio.fr>
  */
 class Category extends BaseI18nLoop implements PropelSearchLoopInterface, SearchLoopInterface
@@ -225,6 +223,7 @@ class Category extends BaseI18nLoop implements PropelSearchLoopInterface, Search
                 ->set("META_KEYWORDS", $category->getVirtualColumn('i18n_META_KEYWORDS'))
                 ->set("VISIBLE", $category->getVisible() ? "1" : "0")
                 ->set("POSITION", $category->getPosition())
+                ->set("TEMPLATE", $category->getDefaultTemplateId())
 
             ;
 

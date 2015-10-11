@@ -20,7 +20,7 @@ use Thelia\Model\ProfileQuery;
 /**
  * Class ApiUpdateForm
  * @package Thelia\Form\Api
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class ApiUpdateForm extends BaseForm
 {
@@ -57,7 +57,7 @@ class ApiUpdateForm extends BaseForm
                     ),
                     "label" => Translator::getInstance()->trans('Profile'),
                     "label_attr" => array(
-                        "for" => "profile"
+                        "for" => "profile",
                     ),
                 )
             );

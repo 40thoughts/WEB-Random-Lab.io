@@ -12,20 +12,20 @@
 
 namespace Thelia\Controller\Admin;
 
+use Thelia\Core\Event\ImportExport as ImportExportEvent;
+use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Event\UpdatePositionEvent;
+use Thelia\Core\FileFormat\Archive\AbstractArchiveBuilder;
 use Thelia\Core\FileFormat\Archive\ArchiveBuilderManagerTrait;
+use Thelia\Core\FileFormat\Formatting\AbstractFormatter;
 use Thelia\Core\FileFormat\Formatting\FormatterManagerTrait;
+use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Template\Element\LoopResult;
 use Thelia\Core\Template\Loop\Export as ExportLoop;
-use Thelia\Core\Event\ImportExport as ImportExportEvent;
-use Thelia\Core\Event\TheliaEvents;
-use Thelia\Core\FileFormat\Archive\AbstractArchiveBuilder;
-use Thelia\Core\FileFormat\Formatting\AbstractFormatter;
-use Thelia\Core\HttpFoundation\Response;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Form\Exception\FormValidationException;
-use Thelia\Form\ExportForm;
 use Thelia\ImportExport\Export\DocumentsExportInterface;
 use Thelia\ImportExport\Export\ExportHandler;
 use Thelia\ImportExport\Export\ImagesExportInterface;
@@ -37,7 +37,7 @@ use Thelia\Model\LangQuery;
 /**
  * Class ExportController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class ExportController extends BaseAdminController
 {
@@ -77,7 +77,7 @@ class ExportController extends BaseAdminController
         /**
          * Define and validate the form
          */
-        $form = new ExportForm($this->getRequest());
+        $form = $this->createForm(AdminForm::EXPORT);
         $errorMessage = null;
 
         try {
@@ -105,7 +105,15 @@ class ExportController extends BaseAdminController
                 );
             }
 
-            /**
+            $rangeDate = null;
+
+            if ($boundForm->get('range_date_start')->getData() && $boundForm->get('range_date_end')->getData()) {
+                $rangeDate = [];
+                $rangeDate['start'] = $boundForm->get('range_date_start')->getData();
+                $rangeDate['end'] = $boundForm->get('range_date_end')->getData();
+            }
+
+            /*
              * Return the generated Response
              */
 
@@ -115,7 +123,8 @@ class ExportController extends BaseAdminController
                 $archiveBuilder,
                 $lang,
                 $boundForm->get("images")->getData(),
-                $boundForm->get("documents")->getData()
+                $boundForm->get("documents")->getData(),
+                $rangeDate
             );
         } catch (FormValidationException $e) {
             $errorMessage = $this->createStandardFormValidationErrorMessage($e);
@@ -155,7 +164,8 @@ class ExportController extends BaseAdminController
         AbstractArchiveBuilder $archiveBuilder = null,
         Lang $lang = null,
         $includeImages = false,
-        $includeDocuments = false
+        $includeDocuments = false,
+        $rangeDate = null
     ) {
         /**
          * Build an event containing the formatter and the handler.
@@ -164,7 +174,11 @@ class ExportController extends BaseAdminController
 
         $event = new ImportExportEvent($formatter, $handler);
 
-        $filename = $formatter::FILENAME . "." . $formatter->getExtension();
+        $filename = $handler->getFilename() . "." . $formatter->getExtension();
+
+        if ($rangeDate !== null) {
+            $handler->setRangeDate($rangeDate);
+        }
 
         if ($archiveBuilder === null) {
             $data = $handler->buildData($lang);
@@ -223,7 +237,7 @@ class ExportController extends BaseAdminController
                 $filename
             );
 
-            return $archiveBuilder->buildArchiveResponse($formatter::FILENAME);
+            return $archiveBuilder->buildArchiveResponse($handler->getFilename());
         }
     }
 

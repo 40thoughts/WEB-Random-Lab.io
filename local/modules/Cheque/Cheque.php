@@ -44,7 +44,7 @@ class Cheque extends BaseModule implements PaymentModuleInterface
      */
     public function isValidPayment()
     {
-        return true;
+        return $this->getCurrentOrderTotalAmount() > 0;
     }
 
     public function postActivation(ConnectionInterface $con = null)
@@ -53,13 +53,6 @@ class Cheque extends BaseModule implements PaymentModuleInterface
 
         // Insert email message
         $database->insertSql(null, array(__DIR__ . "/Config/setup.sql"));
-
-        /* insert the images from image folder if not already done */
-        $moduleModel = $this->getModuleModel();
-
-        if (! $moduleModel->isModuleImageDeployed($con)) {
-            $this->deployImageFolder($moduleModel, sprintf('%s/images', __DIR__), $con);
-        }
     }
 
     public function destroy(ConnectionInterface $con = null, $deleteModuleData = false)

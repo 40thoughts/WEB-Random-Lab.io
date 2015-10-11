@@ -23,7 +23,7 @@ use Symfony\Component\Filesystem\Filesystem;
  *
  * Class ModuleGenerateCommand
  * @package Thelia\Command
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class ModuleGenerateCommand extends BaseModuleGenerate
 {
@@ -87,6 +87,23 @@ class ModuleGenerateCommand extends BaseModuleGenerate
         }
     }
 
+    protected function copyConfigFile($filename, $skeletonDir, Filesystem $fs)
+    {
+        $filename = $this->moduleDirectory . DIRECTORY_SEPARATOR . "Config" . DIRECTORY_SEPARATOR . $filename;
+        if (!$fs->exists($filename)) {
+            $configContent = file_get_contents($skeletonDir . "config.xml");
+
+            $configContent = str_replace("%%CLASSNAME%%", $this->module, $configContent);
+            $configContent = str_replace("%%NAMESPACE%%", $this->module, $configContent);
+            $configContent = str_replace("%%NAMESPACE_LOWER%%", strtolower($this->module), $configContent);
+
+            file_put_contents(
+                $filename,
+                $configContent
+            );
+        }
+    }
+
     private function createFiles()
     {
         $fs = new Filesystem();
@@ -95,18 +112,39 @@ class ModuleGenerateCommand extends BaseModuleGenerate
             $skeletonDir = str_replace("/", DIRECTORY_SEPARATOR, __DIR__ . "/Skeleton/Module/");
 
             // config.xml file
-            $filename = $this->moduleDirectory . DIRECTORY_SEPARATOR . "Config" . DIRECTORY_SEPARATOR . "config.xml";
+            $this->copyConfigFile("config.xml", $skeletonDir, $fs);
+            $this->copyConfigFile("config_prod.xml", $skeletonDir, $fs);
+            $this->copyConfigFile("config_dev.xml", $skeletonDir, $fs);
+            $this->copyConfigFile("config_test.xml", $skeletonDir, $fs);
+
+            // Readme.md file
+            $filename = $this->moduleDirectory . DIRECTORY_SEPARATOR . "Readme.md";
             if (!$fs->exists($filename)) {
-                $configContent = file_get_contents($skeletonDir . "config.xml");
+                $readmeContent = file_get_contents($skeletonDir . "Readme.md");
 
-                $configContent = str_replace("%%CLASSNAME%%", $this->module, $configContent);
-                $configContent = str_replace("%%NAMESPACE%%", $this->module, $configContent);
-                $configContent = str_replace("%%NAMESPACE_LOWER%%", strtolower($this->module), $configContent);
+                // generate title for readme
+                preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $this->module, $readmeTitle);
+                $composerFinalName = strtolower(implode("-", $readmeTitle[0]));
 
-                file_put_contents(
-                    $filename,
-                    $configContent
-                );
+                $readmeContent = str_replace("%%MODULENAME%%", $this->module, $readmeContent);
+                $readmeContent = str_replace("%%MODULENAMETITLE%%", implode(" ", $readmeTitle[0]), $readmeContent);
+                $readmeContent = str_replace("%%COMPOSERNAME%%", $composerFinalName, $readmeContent);
+
+                file_put_contents($filename, $readmeContent);
+            }
+
+            // composer.json file
+            $filename = $this->moduleDirectory . DIRECTORY_SEPARATOR . "composer.json";
+            if (!$fs->exists($filename)) {
+                $composerContent = file_get_contents($skeletonDir . "composer.json");
+
+                // generate composer module name
+                preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $this->module, $composerName);
+
+                $composerContent = str_replace("%%MODULENAME%%", $this->module, $composerContent);
+                $composerContent = str_replace("%%COMPOSERNAME%%", strtolower(implode("-", $composerName[0])), $composerContent);
+
+                file_put_contents($filename, $composerContent);
             }
 
             // module.xml file
@@ -127,6 +165,7 @@ class ModuleGenerateCommand extends BaseModuleGenerate
 
                 $classContent = str_replace("%%CLASSNAME%%", $this->module, $classContent);
                 $classContent = str_replace("%%NAMESPACE%%", $this->module, $classContent);
+                $classContent = str_replace("%%DOMAINNAME%%", strtolower($this->module), $classContent);
 
                 file_put_contents($filename, $classContent);
             }

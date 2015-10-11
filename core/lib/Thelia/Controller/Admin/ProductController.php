@@ -15,73 +15,68 @@ namespace Thelia\Controller\Admin;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Thelia\Core\Event\FeatureProduct\FeatureProductDeleteEvent;
 use Thelia\Core\Event\FeatureProduct\FeatureProductUpdateEvent;
-use Thelia\Core\Event\Product\ProductEvent;
 use Thelia\Core\Event\MetaData\MetaDataCreateOrUpdateEvent;
 use Thelia\Core\Event\MetaData\MetaDataDeleteEvent;
-use Thelia\Core\Event\TheliaEvents;
-use Thelia\Core\Event\Product\ProductUpdateEvent;
-use Thelia\Core\Event\Product\ProductCreateEvent;
-use Thelia\Core\Event\Product\ProductAddCategoryEvent;
-use Thelia\Core\Event\Product\ProductDeleteCategoryEvent;
-use Thelia\Core\Event\Product\ProductDeleteEvent;
-use Thelia\Core\Event\Product\ProductToggleVisibilityEvent;
-use Thelia\Core\Event\Product\ProductDeleteContentEvent;
-use Thelia\Core\Event\Product\ProductAddContentEvent;
 use Thelia\Core\Event\Product\ProductAddAccessoryEvent;
-use Thelia\Core\Event\Product\ProductDeleteAccessoryEvent;
+use Thelia\Core\Event\Product\ProductAddCategoryEvent;
+use Thelia\Core\Event\Product\ProductAddContentEvent;
+use Thelia\Core\Event\Product\ProductCloneEvent;
 use Thelia\Core\Event\Product\ProductCombinationGenerationEvent;
+use Thelia\Core\Event\Product\ProductCreateEvent;
+use Thelia\Core\Event\Product\ProductDeleteAccessoryEvent;
+use Thelia\Core\Event\Product\ProductDeleteCategoryEvent;
+use Thelia\Core\Event\Product\ProductDeleteContentEvent;
+use Thelia\Core\Event\Product\ProductDeleteEvent;
+use Thelia\Core\Event\Product\ProductEvent;
 use Thelia\Core\Event\Product\ProductSetTemplateEvent;
-use Thelia\Core\Event\UpdatePositionEvent;
+use Thelia\Core\Event\Product\ProductToggleVisibilityEvent;
+use Thelia\Core\Event\Product\ProductUpdateEvent;
+use Thelia\Core\Event\ProductSaleElement\ProductSaleElementCreateEvent;
 use Thelia\Core\Event\ProductSaleElement\ProductSaleElementDeleteEvent;
 use Thelia\Core\Event\ProductSaleElement\ProductSaleElementUpdateEvent;
-use Thelia\Core\Event\ProductSaleElement\ProductSaleElementCreateEvent;
-
+use Thelia\Core\Event\TheliaEvents;
+use Thelia\Core\Event\UpdatePositionEvent;
 use Thelia\Core\HttpFoundation\JsonResponse;
 use Thelia\Core\HttpFoundation\Response;
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Security\AccessManager;
-
+use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Template\Loop\Document;
 use Thelia\Core\Template\Loop\Image;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Form\Exception\FormValidationException;
+use Thelia\Form\ProductModificationForm;
 use Thelia\Model\AccessoryQuery;
 use Thelia\Model\AttributeAv;
+use Thelia\Model\AttributeAvQuery;
+use Thelia\Model\AttributeQuery;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\Content;
+use Thelia\Model\ContentQuery;
+use Thelia\Model\Country;
+use Thelia\Model\Currency;
+use Thelia\Model\CurrencyQuery;
 use Thelia\Model\Feature;
+use Thelia\Model\FeatureProductQuery;
 use Thelia\Model\FeatureQuery;
 use Thelia\Model\FeatureTemplateQuery;
 use Thelia\Model\FolderQuery;
-use Thelia\Model\ContentQuery;
-use Thelia\Model\AttributeQuery;
-use Thelia\Model\AttributeAvQuery;
-use Thelia\Model\MetaDataQuery;
 use Thelia\Model\MetaData;
+use Thelia\Model\MetaDataQuery;
+use Thelia\Model\Product;
+use Thelia\Model\ProductAssociatedContentQuery;
 use Thelia\Model\ProductDocument;
 use Thelia\Model\ProductDocumentQuery;
 use Thelia\Model\ProductImageQuery;
+use Thelia\Model\ProductPrice;
+use Thelia\Model\ProductPriceQuery;
 use Thelia\Model\ProductQuery;
-use Thelia\Model\ProductAssociatedContentQuery;
-use Thelia\Model\ProductSaleElements as ProductSaleElementsModel;
 use Thelia\Model\ProductSaleElements;
-use Thelia\Model\ProductSaleElementsQuery;
+use Thelia\Model\ProductSaleElements as ProductSaleElementsModel;
 use Thelia\Model\ProductSaleElementsProductDocument;
 use Thelia\Model\ProductSaleElementsProductDocumentQuery;
 use Thelia\Model\ProductSaleElementsProductImage;
 use Thelia\Model\ProductSaleElementsProductImageQuery;
-use Thelia\Model\ProductPriceQuery;
-use Thelia\Model\ProductPrice;
-use Thelia\Model\Currency;
-use Thelia\Model\CurrencyQuery;
-use Thelia\Model\Country;
-use Thelia\Model\Product;
-
-use Thelia\Form\ProductCreationForm;
-use Thelia\Form\ProductModificationForm;
-use Thelia\Form\ProductSaleElementUpdateForm;
-use Thelia\Form\ProductDefaultSaleElementUpdateForm;
-use Thelia\Form\ProductCombinationGenerationForm;
-
+use Thelia\Model\ProductSaleElementsQuery;
 use Thelia\Model\TaxRuleQuery;
 use Thelia\TaxEngine\Calculator;
 use Thelia\Tools\NumberFormat;
@@ -140,12 +135,12 @@ class ProductController extends AbstractSeoCrudController
 
     protected function getCreationForm()
     {
-        return new ProductCreationForm($this->getRequest());
+        return $this->createForm(AdminForm::PRODUCT_CREATION);
     }
 
     protected function getUpdateForm()
     {
-        return new ProductModificationForm($this->getRequest(), "form", [], [], $this->container);
+        return $this->createForm(AdminForm::PRODUCT_MODIFICATION, "form", [], [], $this->container);
     }
 
     protected function getCreationEvent($formData)
@@ -298,14 +293,14 @@ class ProductController extends AbstractSeoCrudController
                 $defaultPseData = array(
                     "product_sale_element_id" => $saleElement->getId(),
                     "reference"               => $saleElement->getRef(),
-                    "price"                   => $productPrice->getPrice(),
-                    "price_with_tax"          => number_format($this->computePrice($productPrice->getPrice(), 'without_tax', $object), 2, '.', ''),
+                    "price"                   => $this->formatPrice($productPrice->getPrice()),
+                    "price_with_tax"          => $this->formatPrice($this->computePrice($productPrice->getPrice(), 'without_tax', $object)),
                     "use_exchange_rate"       => $productPrice->getFromDefaultCurrency() ? 1 : 0,
                     "currency"                => $productPrice->getCurrencyId(),
                     "weight"                  => $saleElement->getWeight(),
                     "quantity"                => $saleElement->getQuantity(),
-                    "sale_price"              => $productPrice->getPromoPrice(),
-                    "sale_price_with_tax"     => number_format($this->computePrice($productPrice->getPromoPrice(), 'without_tax', $object), 2, '.', ''),
+                    "sale_price"              => $this->formatPrice($productPrice->getPromoPrice()),
+                    "sale_price_with_tax"     => $this->formatPrice($this->computePrice($productPrice->getPromoPrice(), 'without_tax', $object)),
                     "onsale"                  => $saleElement->getPromo() > 0 ? 1 : 0,
                     "isnew"                   => $saleElement->getNewness() > 0 ? 1 : 0,
                     "isdefault"               => $saleElement->getIsDefault() > 0 ? 1 : 0,
@@ -320,22 +315,22 @@ class ProductController extends AbstractSeoCrudController
 
                 $this->appendValue($combinationPseData, "product_sale_element_id", $saleElement->getId());
                 $this->appendValue($combinationPseData, "reference", $saleElement->getRef());
-                $this->appendValue($combinationPseData, "price", $productPrice->getPrice());
-                $this->appendValue($combinationPseData, "price_with_tax", number_format($this->computePrice($productPrice->getPrice(), 'without_tax', $object), 2, '.', ''));
+                $this->appendValue($combinationPseData, "price", $this->formatPrice($productPrice->getPrice()));
+                $this->appendValue($combinationPseData, "price_with_tax", $this->formatPrice($this->computePrice($productPrice->getPrice(), 'without_tax', $object)));
                 $this->appendValue($combinationPseData, "weight", $saleElement->getWeight());
                 $this->appendValue($combinationPseData, "quantity", $saleElement->getQuantity());
-                $this->appendValue($combinationPseData, "sale_price", $productPrice->getPromoPrice());
-                $this->appendValue($combinationPseData, "sale_price_with_tax", number_format($this->computePrice($productPrice->getPromoPrice(), 'without_tax', $object), 2, '.', ''));
+                $this->appendValue($combinationPseData, "sale_price", $this->formatPrice($productPrice->getPromoPrice()));
+                $this->appendValue($combinationPseData, "sale_price_with_tax", $this->formatPrice($this->computePrice($productPrice->getPromoPrice(), 'without_tax', $object)));
                 $this->appendValue($combinationPseData, "onsale", $saleElement->getPromo() > 0 ? 1 : 0);
                 $this->appendValue($combinationPseData, "isnew", $saleElement->getNewness() > 0 ? 1 : 0);
                 $this->appendValue($combinationPseData, "isdefault", $saleElement->getIsDefault() > 0 ? 1 : 0);
                 $this->appendValue($combinationPseData, "ean_code", $saleElement->getEanCode());
             }
 
-            $defaultPseForm = new ProductDefaultSaleElementUpdateForm($this->getRequest(), "form", $defaultPseData);
+            $defaultPseForm = $this->createForm(AdminForm::PRODUCT_DEFAULT_SALE_ELEMENT_UPDATE, "form", $defaultPseData);
             $this->getParserContext()->addForm($defaultPseForm);
 
-            $combinationPseForm = new ProductSaleElementUpdateForm($this->getRequest(), "form", $combinationPseData);
+            $combinationPseForm = $this->createForm(AdminForm::PRODUCT_SALE_ELEMENT_UPDATE, "form", $combinationPseData);
             $this->getParserContext()->addForm($combinationPseForm);
         }
 
@@ -366,7 +361,7 @@ class ProductController extends AbstractSeoCrudController
         }
 
         // Setup the object form
-        return new ProductModificationForm($this->getRequest(), "form", $data, [], $this->container);
+        return $this->createForm(AdminForm::PRODUCT_MODIFICATION, "form", $data, [], $this->container);
     }
 
     /**
@@ -826,12 +821,20 @@ class ProductController extends AbstractSeoCrudController
                 $featureTextValues = $this->getRequest()->get('feature_text_value', array());
 
                 foreach ($featureTextValues as $featureId => $featureValue) {
-                    // considere empty text as empty feature value (e.g., we will delete it)
-                    if (empty($featureValue)) {
+
+                    // Check if a FeatureProduct exists for this product and this feature (for another lang)
+                    $freeTextFeatureProduct = FeatureProductQuery::create()
+                        ->filterByProductId($productId)
+                        ->filterByFreeTextValue(true)
+                        ->findOneByFeatureId($featureId);
+
+                    // If no corresponding FeatureProduct exists AND if the feature_text_value is empty, do nothing
+                    if (is_null($freeTextFeatureProduct) && empty($featureValue)) {
                         continue;
                     }
 
                     $event = new FeatureProductUpdateEvent($productId, $featureId, $featureValue, true);
+                    $event->setLocale($this->getCurrentEditionLocale());
 
                     $this->dispatch(TheliaEvents::PRODUCT_FEATURE_UPDATE_VALUE, $event);
 
@@ -850,7 +853,7 @@ class ProductController extends AbstractSeoCrudController
             }
         }
 
-        // If we have to stay on the same page, do not redirect to the succesUrl,
+        // If we have to stay on the same page, do not redirect to the successUrl,
         // just redirect to the edit page again.
         if ($this->getRequest()->get('save_mode') == 'stay') {
             return $this->redirectToEditionTemplate($this->getRequest());
@@ -1061,7 +1064,16 @@ class ProductController extends AbstractSeoCrudController
 
         // Log object modification
         if (null !== $changedObject = $event->getProductSaleElement()) {
-            $this->adminLogAppend($this->resourceCode, AccessManager::UPDATE, sprintf("Product Sale Element (ID %s) for product reference %s modified", $changedObject->getId(), $event->getProduct()->getRef()));
+            $this->adminLogAppend(
+                $this->resourceCode,
+                AccessManager::UPDATE,
+                sprintf(
+                    "Product Sale Element (ID %s) for product reference %s modified",
+                    $changedObject->getId(),
+                    $event->getProduct()->getRef()
+                ),
+                $changedObject->getId()
+            );
         }
     }
 
@@ -1111,7 +1123,7 @@ class ProductController extends AbstractSeoCrudController
                 $this->processSingleProductSaleElementUpdate($data);
             }
 
-            // If we have to stay on the same page, do not redirect to the succesUrl, just redirect to the edit page again.
+            // If we have to stay on the same page, do not redirect to the successUrl, just redirect to the edit page again.
             if ($this->getRequest()->get('save_mode') == 'stay') {
                 return $this->redirectToEditionTemplate($this->getRequest());
             }
@@ -1143,7 +1155,7 @@ class ProductController extends AbstractSeoCrudController
     public function updateProductSaleElementsAction()
     {
         return $this->processProductSaleElementUpdate(
-            new ProductSaleElementUpdateForm($this->getRequest())
+            $this->createForm(AdminForm::PRODUCT_SALE_ELEMENT_UPDATE)
         );
     }
 
@@ -1153,7 +1165,7 @@ class ProductController extends AbstractSeoCrudController
     public function updateProductDefaultSaleElementAction()
     {
         return $this->processProductSaleElementUpdate(
-            new ProductDefaultSaleElementUpdateForm($this->getRequest())
+            $this->createForm(AdminForm::PRODUCT_DEFAULT_SALE_ELEMENT_UPDATE)
         );
     }
 
@@ -1187,7 +1199,7 @@ class ProductController extends AbstractSeoCrudController
             return $response;
         }
 
-        $changeForm = new ProductCombinationGenerationForm($this->getRequest());
+        $changeForm = $this->createForm(AdminForm::PRODUCT_COMBINATION_GENERATION);
 
         try {
             // Check the form against constraints violations
@@ -1237,7 +1249,15 @@ class ProductController extends AbstractSeoCrudController
             $this->dispatch(TheliaEvents::PRODUCT_COMBINATION_GENERATION, $event);
 
             // Log object modification
-            $this->adminLogAppend($this->resourceCode, AccessManager::CREATE, sprintf("Combination generation for product reference %s", $event->getProduct()->getRef()));
+            $this->adminLogAppend(
+                $this->resourceCode,
+                AccessManager::CREATE,
+                sprintf(
+                    "Combination generation for product reference %s",
+                    $event->getProduct()->getRef()
+                ),
+                $event->getProduct()->getId()
+            );
 
            // Redirect to the success URL
             return $this->generateSuccessRedirect($changeForm);
@@ -1261,10 +1281,19 @@ class ProductController extends AbstractSeoCrudController
     }
 
     /**
-     * Invoked through Ajax; this method calculates the taxed price from the unaxed price, and
-     * vice versa.
+     * Invoked through Ajax; this method calculates the taxed price from the untaxed price, and vice versa.
+     * @deprecated since version 2.2 and will be removed in 2.3, please use priceCalculator
      */
     public function priceCaclulator()
+    {
+        return $this->priceCalculator();
+    }
+
+    /**
+     * Invoked through Ajax; this method calculates the taxed price from the untaxed price, and vice versa.
+     * @since version 2.2
+     */
+    public function priceCalculator()
     {
         $return_price = 0;
 
@@ -1287,7 +1316,7 @@ class ProductController extends AbstractSeoCrudController
             }
         }
 
-        return new JsonResponse(array('result' => $return_price));
+        return new JsonResponse(array('result' => $this->formatPrice($return_price)));
     }
 
     /**
@@ -1325,7 +1354,7 @@ class ProductController extends AbstractSeoCrudController
             }
         }
 
-        return new JsonResponse(array('result' => $return_price));
+        return new JsonResponse(array('result' => $this->formatPrice($return_price)));
     }
 
     /**
@@ -1367,10 +1396,10 @@ class ProductController extends AbstractSeoCrudController
         }
 
         return new JsonResponse(array(
-            'price_with_tax'         => NumberFormat::getInstance($this->getRequest())->formatStandardNumber($price_with_tax),
-            'price_without_tax'      => NumberFormat::getInstance($this->getRequest())->formatStandardNumber($price_without_tax),
-            'sale_price_with_tax'    => NumberFormat::getInstance($this->getRequest())->formatStandardNumber($sale_price_with_tax),
-            'sale_price_without_tax' => NumberFormat::getInstance($this->getRequest())->formatStandardNumber($sale_price_without_tax)
+            'price_with_tax'         => $this->formatPrice($price_with_tax),
+            'price_without_tax'      => $this->formatPrice($price_without_tax),
+            'sale_price_with_tax'    => $this->formatPrice($sale_price_with_tax),
+            'sale_price_without_tax' => $this->formatPrice($sale_price_without_tax)
         ));
     }
 
@@ -1404,8 +1433,7 @@ class ProductController extends AbstractSeoCrudController
             $return_price = $price * Currency::getDefaultCurrency()->getRate();
         }
 
-        // Format the number using '.', to perform further calculation
-        return NumberFormat::getInstance($this->getRequest())->formatStandardNumber($return_price);
+        return floatval($return_price);
     }
 
     /**
@@ -1793,5 +1821,59 @@ class ProductController extends AbstractSeoCrudController
         }
 
         return $status;
+    }
+
+    /**
+     * @return mixed|\Symfony\Component\HttpFoundation\Response
+     * @throws \Exception
+     */
+    public function cloneAction()
+    {
+        if (null !== $response = $this->checkAuth($this->resourceCode, $this->getModuleCode(), [AccessManager::CREATE, AccessManager::UPDATE])) {
+            return $response;
+        }
+
+        // Initialize vars
+        $cloneProductForm = $this->createForm(AdminForm::PRODUCT_CLONE);
+        $lang = $this->getSession()->getLang()->getLocale();
+
+        try {
+            // Check the form against constraints violations
+            $form = $this->validateForm($cloneProductForm, "POST");
+
+            $originalProduct = ProductQuery::create()
+                ->findPk($form->getData()['productId']);
+
+            // Build and dispatch product clone event
+            $productCloneEvent = new ProductCloneEvent(
+                $form->getData()['newRef'],
+                $lang,
+                $originalProduct
+            );
+            $this->dispatch(TheliaEvents::PRODUCT_CLONE, $productCloneEvent);
+
+            return $this->generateRedirectFromRoute(
+                'admin.products.update',
+                array('product_id' => $productCloneEvent->getClonedProduct()->getId())
+            );
+        } catch (FormValidationException $e) {
+            $this->setupFormErrorContext(
+                $this->getTranslator()->trans("Product clone"),
+                $e->getMessage(),
+                $cloneProductForm,
+                $e
+            );
+
+            return $this->redirectToEditionTemplate();
+        }
+    }
+
+    /**
+     * @param string $price
+     * @return float
+     */
+    protected function formatPrice($price)
+    {
+        return floatval(number_format($price, 6, '.', ''));
     }
 }

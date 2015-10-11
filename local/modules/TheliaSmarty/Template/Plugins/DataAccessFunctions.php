@@ -18,6 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Security\SecurityContext;
 use Thelia\Core\Template\ParserContext;
+use Thelia\Log\Tlog;
 use Thelia\Model\Base\BrandQuery;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\ConfigQuery;
@@ -26,6 +27,8 @@ use Thelia\Model\CountryQuery;
 use Thelia\Model\CurrencyQuery;
 use Thelia\Model\FolderQuery;
 use Thelia\Model\MetaDataQuery;
+use Thelia\Model\ModuleConfigQuery;
+use Thelia\Model\ModuleQuery;
 use Thelia\Model\OrderQuery;
 use Thelia\Model\ProductQuery;
 use Thelia\Model\Tools\ModelCriteriaTools;
@@ -386,6 +389,47 @@ class DataAccessFunctions extends AbstractSmartyPlugin
     }
 
     /**
+     * Provides access to a module configuration value
+     *
+     * @param  array $params
+     * @param  \Smarty $smarty
+     * @return string the value of the configuration value
+     */
+
+    public function moduleConfigDataAccess($params, $smarty)
+    {
+        $key = $this->getParam($params, 'key', false);
+        $moduleCode = $this->getParam($params, 'module', false);
+
+        if ($key === false || $moduleCode === false) {
+            return null;
+        }
+
+        $default = $this->getParam($params, 'default', '');
+
+        if (null !== $module = ModuleQuery::create()->findOneByCode($moduleCode)) {
+            return ModuleConfigQuery::create()
+                ->getConfigValue(
+                    $module->getId(),
+                    $key,
+                    $default,
+                    $this->request->getSession()->getLang()->getLocale()
+                );
+        } else {
+            Tlog::getInstance()->addWarning(
+                sprintf(
+                    "Module code '%s' not found in module-config Smarty function",
+                    $moduleCode
+                )
+            );
+
+            $value = $default;
+        }
+
+        return $value;
+    }
+
+    /**
      * Provides access to sales statistics
      *
      * @param  array $params
@@ -499,8 +543,8 @@ class DataAccessFunctions extends AbstractSmartyPlugin
      *
      * If meta argument is specified then it will return an unique value.
      *
-     * @param $params
-     * @param $smarty
+     * @param array $params
+     * @param \Smarty $smarty
      *
      * @throws \InvalidArgumentException
      *
@@ -527,12 +571,22 @@ class DataAccessFunctions extends AbstractSmartyPlugin
                 $out = MetaDataQuery::getVal($meta, $key, (int) $id);
             }
         } else {
-            throw new \InvalidArgumentException("key and id attributes are required in meta access function");
+            throw new \InvalidArgumentException("key and id arguments are required in meta access function");
         }
 
         self::$dataAccessCache[$cacheKey] = $out;
 
-        return $out;
+        if (!empty($params['out'])) {
+            $smarty->assign($params['out'], $out);
+
+            return $out !== null ? true : false;
+        } else {
+            if (is_array($out)) {
+                throw new \InvalidArgumentException('The argument "out" is required if the meta value is an array');
+            }
+
+            return $out;
+        }
     }
 
     /**
@@ -678,6 +732,7 @@ class DataAccessFunctions extends AbstractSmartyPlugin
             new SmartyPluginDescriptor('function', 'config', $this, 'configDataAccess'),
             new SmartyPluginDescriptor('function', 'stats', $this, 'statsAccess'),
             new SmartyPluginDescriptor('function', 'meta', $this, 'metaAccess'),
+            new SmartyPluginDescriptor('function', 'module_config', $this, 'moduleConfigDataAccess'),
         );
     }
 }

@@ -13,7 +13,10 @@
 namespace Thelia\Core\HttpFoundation\Session;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpFoundation\Session\Session as BaseSession;
+use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 use Thelia\Core\Event\Cart\CartCreateEvent;
 use Thelia\Core\Event\Cart\CartRestoreEvent;
 use Thelia\Core\Event\TheliaEvents;
@@ -38,7 +41,7 @@ use Thelia\Tools\URL;
 class Session extends BaseSession
 {
     /**
-     * @param bool $forceDefault
+     * @param bool $forceDefault if true, the default language will be returned if no current language is defined.
      *
      * @return \Thelia\Model\Lang|null
      */
@@ -67,7 +70,7 @@ class Session extends BaseSession
     /**
      * Return current currency
      *
-     * @param bool $forceDefault If default currency forced
+     * @param bool $forceDefault if true, the default currency will be returned if no current currency is defined.
      *
      * @return Currency
      */
@@ -102,6 +105,9 @@ class Session extends BaseSession
         return $this;
     }
 
+    /**
+     * @return Lang the current edition language in the back-office
+     */
     public function getAdminEditionLang()
     {
         $lang = $this->get('thelia.admin.edition.lang');
@@ -113,7 +119,11 @@ class Session extends BaseSession
         return $lang;
     }
 
-    public function setAdminEditionLang($lang)
+    /**
+     * @param Lang $lang the current edition language to set in the back-office
+     * @return $this
+     */
+    public function setAdminEditionLang(Lang $lang)
     {
         $this->set('thelia.admin.edition.lang', $lang);
 
@@ -331,5 +341,28 @@ class Session extends BaseSession
     public function getConsumedCoupons()
     {
         return $this->get('thelia.consumed_coupons', array());
+    }
+
+    /**
+     * Get saved errored forms information
+     *
+     * @return array
+     */
+    public function getFormErrorInformation()
+    {
+        return $this->get('thelia.form-errors', []);
+    }
+
+    /**
+     * Save errored forms information
+     *
+     * @param array $formInformation
+     * @return mixed
+     */
+    public function setFormErrorInformation($formInformation)
+    {
+        $this->set('thelia.form-errors', $formInformation);
+
+        return $this;
     }
 }

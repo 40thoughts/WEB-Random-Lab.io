@@ -22,12 +22,14 @@ use Thelia\Core\Event\Hook\HookUpdateEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Core\Template\TemplateDefinition;
+use Thelia\Core\Translation\Translator;
 use Thelia\Exception\ModuleException;
 use Thelia\Log\Tlog;
 use Thelia\Model\Cart;
 use Thelia\Model\Country;
 use Thelia\Model\HookQuery;
 use Thelia\Model\Lang;
+use Thelia\Model\LangQuery;
 use Thelia\Model\Map\ModuleImageTableMap;
 use Thelia\Model\Map\ModuleTableMap;
 use Thelia\Model\Module;
@@ -69,6 +71,7 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
             $con = Propel::getWriteConnection(ModuleTableMap::DATABASE_NAME);
             $con->beginTransaction();
             try {
+                $this->initializeCoreI18n();
                 if ($this->preActivation($con)) {
                     $moduleModel->setActivate(self::IS_ACTIVATED);
                     $moduleModel->save($con);
@@ -188,7 +191,10 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
     {
         if (is_array($titles)) {
             foreach ($titles as $locale => $title) {
-                $moduleI18n = ModuleI18nQuery::create()->filterById($module->getId())->filterByLocale($locale)->findOne();
+                $moduleI18n = ModuleI18nQuery::create()
+                    ->filterById($module->getId())->filterByLocale($locale)
+                    ->findOne();
+
                 if (null === $moduleI18n) {
                     $moduleI18n = new ModuleI18n();
                     $moduleI18n
@@ -284,7 +290,13 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
 
                     $increment = 0;
                     while (file_exists($imageDirectory . '/' . $imageFileName)) {
-                        $imageFileName = sprintf("%s-%d-%d-%s", $module->getCode(), $image->getId(), $increment, $fileName);
+                        $imageFileName = sprintf(
+                            "%s-%d-%d-%s",
+                            $module->getCode(),
+                            $image->getId(),
+                            $increment,
+                            $fileName
+                        );
                         $increment++;
                     }
 
@@ -293,13 +305,19 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
                     if (! is_dir($imageDirectory)) {
                         if (! @mkdir($imageDirectory, 0777, true)) {
                             $con->rollBack();
-                            throw new ModuleException(sprintf("Cannot create directory : %s", $imageDirectory), ModuleException::CODE_NOT_FOUND);
+                            throw new ModuleException(
+                                sprintf("Cannot create directory : %s", $imageDirectory),
+                                ModuleException::CODE_NOT_FOUND
+                            );
                         }
                     }
 
                     if (! @copy($filePath, $imagePath)) {
                         $con->rollBack();
-                        throw new ModuleException(sprintf("Cannot copy file : %s to : %s", $filePath, $imagePath), ModuleException::CODE_NOT_FOUND);
+                        throw new ModuleException(
+                            sprintf("Cannot copy file : %s to : %s", $filePath, $imagePath),
+                            ModuleException::CODE_NOT_FOUND
+                        );
                     }
 
                     $image->setFile($imageFileName);
@@ -322,7 +340,10 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
             $this->moduleModel = ModuleQuery::create()->findOneByCode($this->getCode());
 
             if (null === $this->moduleModel) {
-                throw new ModuleException(sprintf("Module Code `%s` not found", $this->getCode()), ModuleException::CODE_NOT_FOUND);
+                throw new ModuleException(
+                    sprintf("Module Code `%s` not found", $this->getCode()),
+                    ModuleException::CODE_NOT_FOUND
+                );
             }
         }
 
@@ -344,7 +365,10 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
 
         if (! isset(self::$moduleIds[$code])) {
             if (null === $module = ModuleQuery::create()->findOneByCode($code)) {
-                throw new ModuleException(sprintf("Module Code `%s` not found", $code), ModuleException::CODE_NOT_FOUND);
+                throw new ModuleException(
+                    sprintf("Module Code `%s` not found", $code),
+                    ModuleException::CODE_NOT_FOUND
+                );
             }
 
             self::$moduleIds[$code] = $module->getId();
@@ -447,7 +471,8 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
      *  - arrays
      *  - one or many instance(s) of \Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface
      *
-     * in the first case, your array must contains 2 indexes. The first is the compiler instance and the second the compilerPass type.
+     * in the first case, your array must contains 2 indexes.
+     * The first is the compiler instance and the second the compilerPass type.
      * Example :
      * return array(
      *  array(
@@ -480,8 +505,7 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
     }
 
     /**
-     * This method is called when the plugin is installed for the first time, using
-     * zip upload method.
+     * This method is called when the plugin is installed for the first time
      *
      * @param ConnectionInterface $con
      */
@@ -818,8 +842,29 @@ class BaseModule extends ContainerAware implements BaseModuleInterface
         return $value;
     }
 
-    public static function getModuleCategories()
+    /**
+     * Add core translations of the module to use in `preActivation` and `postActivation`
+     * when the module is not yest activated and translations are not available
+     */
+    private function initializeCoreI18n()
     {
-        return self::$moduleCategories;
+        if ($this->hasContainer()) {
+            /** @var Translator $translator */
+            $translator = $this->container->get('thelia.translator');
+
+            if (null !== $translator) {
+                $i18nPath = sprintf('%s%s/I18n/', THELIA_MODULE_DIR, $this->getCode());
+                $languages = LangQuery::create()->find();
+
+                foreach ($languages as $language) {
+                    $locale = $language->getLocale();
+                    $i18nFile = sprintf('%s%s.php', $i18nPath, $locale);
+
+                    if (is_file($i18nFile) && is_readable($i18nFile)) {
+                        $translator->addResource('php', $i18nFile, $locale, strtolower(self::getModuleCode()));
+                    }
+                }
+            }
+        }
     }
 }

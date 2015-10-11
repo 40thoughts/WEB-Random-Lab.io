@@ -18,15 +18,12 @@ use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Template\Element\BaseI18nLoop;
 use Thelia\Core\Template\Element\LoopResult;
 use Thelia\Core\Template\Element\LoopResultRow;
-
 use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Template\Loop\Argument\Argument;
-
 use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Model\ModuleHookQuery;
 use Thelia\Model\ModuleQuery;
-
 use Thelia\Module\BaseModule;
 use Thelia\Type;
 use Thelia\Type\TypeCollection;
@@ -52,6 +49,7 @@ class Module extends BaseI18nLoop implements PropelSearchLoopInterface
         return new ArgumentCollection(
             Argument::createIntListTypeArgument('id'),
             Argument::createIntTypeArgument('profile'),
+            Argument::createIntListTypeArgument('area'),
             new Argument(
                 'code',
                 new Type\TypeCollection(
@@ -84,6 +82,8 @@ class Module extends BaseI18nLoop implements PropelSearchLoopInterface
                             'code_reverse',
                             'title',
                             'title_reverse',
+                            'type',
+                            'type_reverse',
                             'manual',
                             'manual_reverse',
                             'enabled',
@@ -116,6 +116,16 @@ class Module extends BaseI18nLoop implements PropelSearchLoopInterface
             $search->leftJoinProfileModule('profile_module')
                 ->addJoinCondition('profile_module', 'profile_module.PROFILE_ID=?', $profile, null, \PDO::PARAM_INT)
                 ->withColumn('profile_module.access', 'access');
+        }
+
+
+        $area = $this->getArea();
+
+        if (null !== $area) {
+            $search
+                ->useAreaDeliveryModuleQuery()
+                ->filterByAreaId($area, Criteria::IN)
+                ->endUse();
         }
 
         $code = $this->getCode();
@@ -169,6 +179,12 @@ class Module extends BaseI18nLoop implements PropelSearchLoopInterface
                     break;
                 case "code_reverse":
                     $search->orderByCode(Criteria::DESC);
+                    break;
+                case "type":
+                    $search->orderByType(Criteria::ASC);
+                    break;
+                case "type_reverse":
+                    $search->orderByType(Criteria::DESC);
                     break;
                 case "manual":
                     $search->orderByPosition(Criteria::ASC);
@@ -260,7 +276,7 @@ class Module extends BaseI18nLoop implements PropelSearchLoopInterface
                     $configContent = @file_get_contents($module->getAbsoluteConfigPath() . DS . "config.xml");
 
                     $hasConfigurationInterface = $configContent &&
-                        preg_match('/event\s*=\s*[\'"]module.configuration[\'"]/', $configContent) !== false
+                        preg_match('/event\s*=\s*[\'"]module.configuration[\'"]/', $configContent) === 1
                     ;
 
                     if (false === $hasConfigurationInterface) {

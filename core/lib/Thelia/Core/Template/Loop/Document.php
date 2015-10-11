@@ -67,7 +67,8 @@ class Document extends BaseI18nLoop implements PropelSearchLoopInterface
             Argument::createIntTypeArgument('content'),
             Argument::createAnyTypeArgument('source'),
             Argument::createIntTypeArgument('source_id'),
-            Argument::createBooleanTypeArgument('force_return', true)
+            Argument::createBooleanTypeArgument('force_return', true),
+            Argument::createAnyTypeArgument('query_namespace', 'Thelia\\Model')
         );
 
         // Add possible document sources
@@ -89,7 +90,13 @@ class Document extends BaseI18nLoop implements PropelSearchLoopInterface
     {
         $object = ucfirst($source);
 
-        $queryClass   = sprintf("\Thelia\Model\%sDocumentQuery", $object);
+        $ns = $this->getQueryNamespace();
+
+        if ('\\' !== $ns[0]) {
+            $ns = '\\'.$ns;
+        }
+
+        $queryClass   = sprintf("%s\\%sDocumentQuery", $ns, $object);
         $filterMethod = sprintf("filterBy%sId", $object);
 
         // xxxDocumentQuery::create()
@@ -210,20 +217,26 @@ class Document extends BaseI18nLoop implements PropelSearchLoopInterface
 
     public function parseResults(LoopResult $loopResult)
     {
+        $baseSourceFilePath = ConfigQuery::read('documents_library_path');
+        if ($baseSourceFilePath === null) {
+            $baseSourceFilePath = THELIA_LOCAL_DIR . 'media' . DS . 'documents';
+        } else {
+            $baseSourceFilePath = THELIA_ROOT . $baseSourceFilePath;
+        }
+
         foreach ($loopResult->getResultDataCollection() as $result) {
             // Create document processing event
             $event = new DocumentEvent($this->request);
 
             // Put source document file path
-            $source_filepath = sprintf(
-                "%s%s/%s/%s",
-                THELIA_ROOT,
-                ConfigQuery::read('documents_library_path', 'local/media/documents'),
+            $sourceFilePath = sprintf(
+                '%s/%s/%s',
+                $baseSourceFilePath,
                 $this->objectType,
                 $result->getFile()
             );
 
-            $event->setSourceFilepath($source_filepath);
+            $event->setSourceFilepath($sourceFilePath);
             $event->setCacheSubdirectory($this->objectType);
 
             try {
@@ -238,7 +251,7 @@ class Document extends BaseI18nLoop implements PropelSearchLoopInterface
                     ->set("DOCUMENT_FILE", $result->getFile())
                     ->set("DOCUMENT_URL", $event->getDocumentUrl())
                     ->set("DOCUMENT_PATH", $event->getDocumentPath())
-                    ->set("ORIGINAL_DOCUMENT_PATH", $source_filepath)
+                    ->set("ORIGINAL_DOCUMENT_PATH", $sourceFilePath)
                     ->set("TITLE", $result->getVirtualColumn('i18n_TITLE'))
                     ->set("CHAPO", $result->getVirtualColumn('i18n_CHAPO'))
                     ->set("DESCRIPTION", $result->getVirtualColumn('i18n_DESCRIPTION'))

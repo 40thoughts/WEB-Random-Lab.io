@@ -8,6 +8,7 @@ use Symfony\Component\Routing\Router;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Files\FileModelParentInterface;
 use Thelia\Form\BaseForm;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Form\ProductDocumentModification;
 use Thelia\Model\Base\ProductDocument as BaseProductDocument;
 use Propel\Runtime\Connection\ConnectionInterface;
@@ -95,19 +96,7 @@ class ProductDocument extends BaseProductDocument implements BreadcrumbInterface
      */
     public function getUpdateFormId()
     {
-        return 'thelia.admin.product.document.modification';
-    }
-
-    /**
-     * Get the form instance used to change this object information
-     *
-     * @param \Thelia\Core\HttpFoundation\Request $request
-     *
-     * @return BaseForm the form
-     */
-    public function getUpdateFormInstance(Request $request)
-    {
-        return new ProductDocumentModification($request);
+        return AdminForm::PRODUCT_DOCUMENT_MODIFICATION;
     }
 
     /**
@@ -115,7 +104,14 @@ class ProductDocument extends BaseProductDocument implements BreadcrumbInterface
      */
     public function getUploadDir()
     {
-        return THELIA_LOCAL_DIR . 'media'.DS.'documents'.DS.'product';
+        $uploadDir = ConfigQuery::read('documents_library_path');
+        if ($uploadDir === null) {
+            $uploadDir = THELIA_LOCAL_DIR . 'media' . DS . 'documents';
+        } else {
+            $uploadDir = THELIA_ROOT . $uploadDir;
+        }
+
+        return $uploadDir . DS . 'product';
     }
 
     /**

@@ -9,13 +9,14 @@ $(function($){
     // Remove document on click
     $.documentUploadManager.initDocumentDropZone = function() {
         $.documentUploadManager.onClickDeleteDocument();
+        $.documentUploadManager.onClickModal();
+        $.documentUploadManager.onModalHidden();
         $.documentUploadManager.sortDocument();
         $.documentUploadManager.onClickToggleVisibilityDocument();
 
         var documentDropzone = new Dropzone("#documents-dropzone", {
             dictDefaultMessage : $('.btn-browse').html(),
-            uploadMultiple: false,
-            maxFilesize: 8
+            uploadMultiple: false
         });
 
         var totalFiles      = 0,
@@ -76,10 +77,29 @@ $(function($){
     $.documentUploadManager.onClickDeleteDocument = function() {
         $('.document-manager .document-delete-btn').on('click', function (e) {
             e.preventDefault();
-            var $this = $(this);
+            $("#submit-delete-document").data("element-id", $(this).attr("id"));
+            $('#document_delete_dialog').modal("show");
+
+            return false;
+        });
+    };
+
+    $.documentUploadManager.onModalHidden = function() {
+        $("#document_delete_dialog").on('hidden.bs.modal', function (e) {
+            $("#submit-delete-document").data("element-id", "");
+        });
+    };
+
+    $.documentUploadManager.onClickModal = function() {
+        $("#submit-delete-document").on('click', function(e){
+
+            var $id= $(this).data("element-id");
+            var $this = $("#"+$id);
             var $parent = $this.parent();
-            $parent.find('a').remove();
-            $parent.append('<div class="loading" ></div>');
+            var $greatParent = $parent.parent();
+
+            $greatParent.append('<div class="loading" ></div>');
+            $greatParent.find('.btn-group').remove();
             var $url = $this.attr("href");
             var errorMessage = $this.attr("data-error-message");
             $.ajax({
@@ -93,8 +113,7 @@ $(function($){
                     }
                 }
             }).done(function(data) {
-                $parent.parents('li').remove();
-
+                $greatParent.remove();
                 $(".document-manager .message").html(
                     data
                 );
@@ -103,11 +122,12 @@ $(function($){
                 $( "#js-sort-document").children('li').each(function(position, element) {
                     $(element).find('.js-sorted-position').html(position + 1);
                 });
+            }).always(function() {
+                $('#document_delete_dialog').modal("hide");
+                $("#submit-delete-document").data("element-id", "");
             });
-            return false;
         });
     };
-
 
     // toggle document on click
     $.documentUploadManager.onClickToggleVisibilityDocument = function() {

@@ -33,11 +33,8 @@ use Thelia\Core\Security\Authentication\CustomerUsernamePasswordFormAuthenticato
 use Thelia\Core\Security\Exception\AuthenticationException;
 use Thelia\Core\Security\Exception\UsernameNotFoundException;
 use Thelia\Core\Security\Exception\WrongPasswordException;
-use Thelia\Form\CustomerCreateForm;
 use Thelia\Form\CustomerLogin;
-use Thelia\Form\CustomerLostPasswordForm;
-use Thelia\Form\CustomerPasswordUpdateForm;
-use Thelia\Form\CustomerProfileUpdateForm;
+use Thelia\Form\Definition\FrontForm;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Log\Tlog;
 use Thelia\Model\ConfigQuery;
@@ -49,7 +46,7 @@ use Thelia\Tools\URL;
 /**
  * Class CustomerController
  * @package Thelia\Controller\Front
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class CustomerController extends BaseFrontController
 {
@@ -83,14 +80,10 @@ class CustomerController extends BaseFrontController
 
     public function newPasswordAction()
     {
-        $message = false;
-
-        $passwordLost = new CustomerLostPasswordForm($this->getRequest());
+        $passwordLost = $this->createForm(FrontForm::CUSTOMER_LOST_PASSWORD);
 
         if (! $this->getSecurityContext()->hasCustomerUser()) {
-
             try {
-
                 $form = $this->validateForm($passwordLost);
 
                 $event = new LostPasswordEvent($form->get("email")->getData());
@@ -134,13 +127,16 @@ class CustomerController extends BaseFrontController
             );
         }
 
-        if ($message !== false) {
-            $passwordLost->setErrorMessage($message);
+        $passwordLost->setErrorMessage($message);
 
-            $this->getParserContext()
-                ->addForm($passwordLost)
-                ->setGeneralError($message)
-            ;
+        $this->getParserContext()
+            ->addForm($passwordLost)
+            ->setGeneralError($message)
+        ;
+
+        // Redirect to error URL if defined
+        if ($passwordLost->hasErrorUrl()) {
+            return $this->generateErrorRedirect($passwordLost);
         }
     }
 
@@ -156,10 +152,7 @@ class CustomerController extends BaseFrontController
     public function createAction()
     {
         if (! $this->getSecurityContext()->hasCustomerUser()) {
-
-            $message = false;
-
-            $customerCreation = new CustomerCreateForm($this->getRequest());
+            $customerCreation = $this->createForm(FrontForm::CUSTOMER_CREATE);
 
             try {
                 $form = $this->validateForm($customerCreation, "post");
@@ -218,33 +211,36 @@ class CustomerController extends BaseFrontController
                 );
             }
 
-            if ($message !== false) {
-                Tlog::getInstance()->error(
-                    sprintf(
-                        "Error during customer creation process : %s. Exception was %s",
-                        $message,
-                        $e->getMessage()
-                    )
-                );
+            Tlog::getInstance()->error(
+                sprintf(
+                    "Error during customer creation process : %s. Exception was %s",
+                    $message,
+                    $e->getMessage()
+                )
+            );
 
-                $customerCreation->setErrorMessage($message);
+            $customerCreation->setErrorMessage($message);
 
-                $this->getParserContext()
-                    ->addForm($customerCreation)
-                    ->setGeneralError($message)
-                ;
+            $this->getParserContext()
+                ->addForm($customerCreation)
+                ->setGeneralError($message)
+            ;
+
+            // Redirect to error URL if defined
+            if ($customerCreation->hasErrorUrl()) {
+                return $this->generateErrorRedirect($customerCreation);
             }
         }
     }
 
     /**
-     * Update customer data. On success, redirect to success_url if exists.
-     * Otherwise, display the same view again.
+     * Prepare customer data update.
      */
     public function viewAction()
     {
         $this->checkAuth();
 
+        /** @var Customer $customer */
         $customer = $this->getSecurityContext()->getCustomerUser();
         $data = array(
             'id'           => $customer->getId(),
@@ -252,10 +248,11 @@ class CustomerController extends BaseFrontController
             'firstname'    => $customer->getFirstName(),
             'lastname'     => $customer->getLastName(),
             'email'        => $customer->getEmail(),
+            'email_confirm'        => $customer->getEmail(),
             'newsletter'   => null !== NewsletterQuery::create()->findOneByEmail($customer->getEmail()),
         );
 
-        $customerProfileUpdateForm = new CustomerProfileUpdateForm($this->getRequest(), 'form', $data);
+        $customerProfileUpdateForm = $this->createForm(FrontForm::CUSTOMER_PROFILE_UPDATE, 'form', $data);
 
         // Pass it to the parser
         $this->getParserContext()->addForm($customerProfileUpdateForm);
@@ -264,9 +261,7 @@ class CustomerController extends BaseFrontController
     public function updatePasswordAction()
     {
         if ($this->getSecurityContext()->hasCustomerUser()) {
-            $message = false;
-
-            $customerPasswordUpdateForm = new CustomerPasswordUpdateForm($this->getRequest());
+            $customerPasswordUpdateForm = $this->createForm(FrontForm::CUSTOMER_PASSWORD_UPDATE);
 
             try {
                 $customer = $this->getSecurityContext()->getCustomerUser();
@@ -297,20 +292,23 @@ class CustomerController extends BaseFrontController
                 );
             }
 
-            if ($message !== false) {
-                Tlog::getInstance()->error(
-                    sprintf(
-                        "Error during customer password modification process : %s.",
-                        $message
-                    )
-                );
+            Tlog::getInstance()->error(
+                sprintf(
+                    "Error during customer password modification process : %s.",
+                    $message
+                )
+            );
 
-                $customerPasswordUpdateForm->setErrorMessage($message);
+            $customerPasswordUpdateForm->setErrorMessage($message);
 
-                $this->getParserContext()
-                    ->addForm($customerPasswordUpdateForm)
-                    ->setGeneralError($message)
-                ;
+            $this->getParserContext()
+                ->addForm($customerPasswordUpdateForm)
+                ->setGeneralError($message)
+            ;
+
+            // Redirect to error URL if defined
+            if ($customerPasswordUpdateForm->hasErrorUrl()) {
+                return $this->generateErrorRedirect($customerPasswordUpdateForm);
             }
         }
     }
@@ -318,12 +316,10 @@ class CustomerController extends BaseFrontController
     public function updateAction()
     {
         if ($this->getSecurityContext()->hasCustomerUser()) {
-
-            $message = false;
-
-            $customerProfileUpdateForm = new CustomerProfileUpdateForm($this->getRequest());
+            $customerProfileUpdateForm = $this->createForm(FrontForm::CUSTOMER_PROFILE_UPDATE);
 
             try {
+                /** @var Customer $customer */
                 $customer = $this->getSecurityContext()->getCustomerUser();
                 $newsletterOldEmail = $customer->getEmail();
 
@@ -331,8 +327,11 @@ class CustomerController extends BaseFrontController
 
                 $customerChangeEvent = $this->createEventInstance($form->getData());
                 $customerChangeEvent->setCustomer($customer);
-                // We do not allow customer email modification
-                $customerChangeEvent->setEmailUpdateAllowed(false);
+
+                $customerChangeEvent->setEmailUpdateAllowed(
+                    (intval(ConfigQuery::read('customer_change_email', 0))) ? true : false
+                );
+
                 $this->dispatch(TheliaEvents::CUSTOMER_UPDATEPROFILE, $customerChangeEvent);
 
                 $updatedCustomer = $customerChangeEvent->getCustomer();
@@ -385,15 +384,18 @@ class CustomerController extends BaseFrontController
                 );
             }
 
-            if ($message !== false) {
-                Tlog::getInstance()->error(sprintf("Error during customer modification process : %s.", $message));
+            Tlog::getInstance()->error(sprintf("Error during customer modification process : %s.", $message));
 
-                $customerProfileUpdateForm->setErrorMessage($message);
+            $customerProfileUpdateForm->setErrorMessage($message);
 
-                $this->getParserContext()
-                    ->addForm($customerProfileUpdateForm)
-                    ->setGeneralError($message)
-                ;
+            $this->getParserContext()
+                ->addForm($customerProfileUpdateForm)
+                ->setGeneralError($message)
+            ;
+
+            // Redirect to error URL if defined
+            if ($customerProfileUpdateForm->hasErrorUrl()) {
+                return $this->generateErrorRedirect($customerProfileUpdateForm);
             }
         }
     }
@@ -408,13 +410,10 @@ class CustomerController extends BaseFrontController
     public function loginAction()
     {
         if (! $this->getSecurityContext()->hasCustomerUser()) {
-            $message = false;
-
             $request = $this->getRequest();
             $customerLoginForm = new CustomerLogin($request);
 
             try {
-
                 $form = $this->validateForm($customerLoginForm, "post");
 
                 // If User is a new customer
@@ -426,9 +425,7 @@ class CustomerController extends BaseFrontController
                         )
                     );
                 } else {
-
                     try {
-
                         $authenticator = new CustomerUsernamePasswordFormAuthenticator($request, $customerLoginForm);
 
                         $customer = $authenticator->getAuthentifiedUser();
@@ -468,7 +465,6 @@ class CustomerController extends BaseFrontController
                     }
 
                 }
-
             } catch (FormValidationException $e) {
                 $message = $this->getTranslator()->trans(
                     "Please check your input: %s",
@@ -483,19 +479,17 @@ class CustomerController extends BaseFrontController
                 );
             }
 
-            if ($message !== false) {
-                Tlog::getInstance()->error(
-                    sprintf(
-                        "Error during customer login process : %s. Exception was %s",
-                        $message,
-                        $e->getMessage()
-                    )
-                );
+            Tlog::getInstance()->error(
+                sprintf(
+                    "Error during customer login process : %s. Exception was %s",
+                    $message,
+                    $e->getMessage()
+                )
+            );
 
-                $customerLoginForm->setErrorMessage($message);
+            $customerLoginForm->setErrorMessage($message);
 
-                $this->getParserContext()->addForm($customerLoginForm);
-            }
+            $this->getParserContext()->addForm($customerLoginForm);
         }
     }
 
@@ -565,5 +559,4 @@ class CustomerController extends BaseFrontController
     {
         return ConfigQuery::read('customer_remember_me_cookie_expiration', 2592000 /* 1 month */);
     }
-
 }

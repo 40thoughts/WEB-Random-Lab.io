@@ -16,11 +16,9 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Thelia\Core\Template\Element\BaseI18nLoop;
 use Thelia\Core\Template\Element\LoopResult;
 use Thelia\Core\Template\Element\LoopResultRow;
-
 use Thelia\Core\Template\Element\PropelSearchLoopInterface;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Template\Loop\Argument\Argument;
-
 use Thelia\Model\FeatureProductQuery;
 use Thelia\Model\Map\FeatureAvTableMap;
 use Thelia\Type\TypeCollection;
@@ -46,7 +44,7 @@ class FeatureValue extends BaseI18nLoop implements PropelSearchLoopInterface
     {
         return new ArgumentCollection(
             Argument::createIntTypeArgument('feature', null, true),
-            Argument::createIntTypeArgument('product', null, true),
+            Argument::createIntTypeArgument('product'),
             Argument::createIntListTypeArgument('feature_availability'),
             Argument::createBooleanTypeArgument('exclude_feature_availability', 0),
             Argument::createBooleanTypeArgument('exclude_free_text', 0),
@@ -74,23 +72,24 @@ class FeatureValue extends BaseI18nLoop implements PropelSearchLoopInterface
             true
         );
 
+        $search
+            ->useFeatureAvQuery('feature_av')
+                ->withColumn(FeatureAvTableMap::POSITION, 'feature_av_position')
+            ->endUse();
+
         $feature = $this->getFeature();
 
         $search->filterByFeatureId($feature, Criteria::EQUAL);
 
-        $product = $this->getProduct();
+        if (null !== $product = $this->getProduct()) {
+            $search->filterByProductId($product, Criteria::EQUAL);
+        }
 
-        $search->filterByProductId($product, Criteria::EQUAL);
-
-        $featureAvailability = $this->getFeature_availability();
-
-        if (null !== $featureAvailability) {
+        if (null !== $featureAvailability = $this->getFeature_availability()) {
             $search->filterByFeatureAvId($featureAvailability, Criteria::IN);
         }
 
-        $excludeFeatureAvailability = $this->getExclude_feature_availability();
-
-        if ($excludeFeatureAvailability == true) {
+        if (true === $excludeFeatureAvailability = $this->getExclude_feature_availability()) {
             $search->filterByFeatureAvId(null, Criteria::ISNULL);
         }
 
@@ -105,10 +104,10 @@ class FeatureValue extends BaseI18nLoop implements PropelSearchLoopInterface
                     $search->addDescendingOrderByColumn(FeatureAvTableMap::TABLE_NAME . '_i18n_TITLE');
                     break;
                 case "manual":
-                    $search->orderByPosition(Criteria::ASC);
+                    $search->orderBy('feature_av_position', Criteria::ASC);
                     break;
                 case "manual_reverse":
-                    $search->orderByPosition(Criteria::DESC);
+                    $search->orderBy('feature_av_position', Criteria::DESC);
                     break;
             }
         }
@@ -118,12 +117,14 @@ class FeatureValue extends BaseI18nLoop implements PropelSearchLoopInterface
 
     public function parseResults(LoopResult $loopResult)
     {
+        /** @var \Thelia\Model\FeatureProduct $featureValue */
         foreach ($loopResult->getResultDataCollection() as $featureValue) {
             $loopResultRow = new LoopResultRow($featureValue);
 
             $loopResultRow
                 ->set("ID", $featureValue->getId())
                 ->set("PRODUCT", $featureValue->getProductId())
+                ->set("PRODUCT_ID", $featureValue->getProductId())
                 ->set("FEATURE_AV_ID", $featureValue->getFeatureAvId())
                 ->set("FREE_TEXT_VALUE", $featureValue->getFreeTextValue())
                 ->set("IS_FREE_TEXT", is_null($featureValue->getFeatureAvId()) ? 1 : 0)

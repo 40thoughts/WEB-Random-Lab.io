@@ -41,7 +41,6 @@ use Thelia\Tools\URL;
  */
 class Document extends BaseCachedFile implements EventSubscriberInterface
 {
-
     /**
      * @var string Config key for document delivery mode
      */
@@ -52,7 +51,7 @@ class Document extends BaseCachedFile implements EventSubscriberInterface
      */
     protected function getCacheDirFromWebRoot()
     {
-        return ConfigQuery::read('document_cache_dir_from_web_root', 'cache');
+        return ConfigQuery::read('document_cache_dir_from_web_root', 'cache' . DS . 'documents');
     }
 
     /**

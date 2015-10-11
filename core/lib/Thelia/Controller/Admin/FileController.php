@@ -425,7 +425,7 @@ class FileController extends BaseAdminController
 
         $fileModelInstance = $fileManager->getModelInstance($objectType, $parentType);
 
-        $fileUpdateForm = $fileModelInstance->getUpdateFormInstance($this->getRequest());
+        $fileUpdateForm = $this->createForm($fileModelInstance->getUpdateFormId());
 
         /** @var FileModelInterface $file */
         $file = $fileModelInstance->getQueryInstance()->findPk($fileId);
@@ -482,7 +482,13 @@ class FileController extends BaseAdminController
             $this->adminLogAppend(
                 AdminResources::retrieve($parentType),
                 AccessManager::UPDATE,
-                sprintf('%s with Ref %s (ID %d) modified', ucfirst($objectType), $fileUpdated->getTitle(), $fileUpdated->getId())
+                sprintf(
+                    '%s with Ref %s (ID %d) modified',
+                    ucfirst($objectType),
+                    $fileUpdated->getTitle(),
+                    $fileUpdated->getId()
+                ),
+                $fileUpdated->getId()
             );
 
             if ($this->getRequest()->get('save_mode') == 'close') {
@@ -576,10 +582,10 @@ class FileController extends BaseAdminController
     }
 
     /**
-     * Manage how a image has to be deleted (AJAX)
+     * Manage how a file has to be deleted
      *
-     * @param int    $fileId     Parent id owning image being deleted
-     * @param string $parentType Parent Type owning image being deleted
+     * @param int    $fileId     Parent id owning file being deleted
+     * @param string $parentType Parent Type owning file being deleted
      * @param string $objectType the type of the file, image or document
      * @param string $eventName  the event type.
      *
@@ -618,7 +624,8 @@ class FileController extends BaseAdminController
                         '%id%' => $fileDeleteEvent->getFileToDelete()->getId(),
                         '%parentId%' => $fileDeleteEvent->getFileToDelete()->getParentId(),
                     )
-                )
+                ),
+                $fileDeleteEvent->getFileToDelete()->getId()
             );
         } catch (\Exception $e) {
             $message = $this->getTranslator()->trans(
@@ -634,7 +641,8 @@ class FileController extends BaseAdminController
             $this->adminLogAppend(
                 AdminResources::retrieve($parentType),
                 AccessManager::UPDATE,
-                $message
+                $message,
+                $fileDeleteEvent->getFileToDelete()->getId()
             );
         }
 
@@ -650,7 +658,7 @@ class FileController extends BaseAdminController
     }
 
     /**
-     * Manage how a image has to be deleted (AJAX)
+     * Manage how an image has to be deleted (AJAX)
      *
      * @param int    $imageId    Parent id owning image being deleted
      * @param string $parentType Parent Type owning image being deleted

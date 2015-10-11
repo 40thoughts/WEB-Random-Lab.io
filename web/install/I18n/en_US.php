@@ -1,6 +1,7 @@
 <?php
 
 return array(
+
     '<p><strong>Sorry, an unexpected error occured</strong>: %err</p><p>Error details:</p><p>%details</p>' => '<p><strong>Sorry, an unexpected error occured</strong>: %err</p><p>Error details:</p><p>%details</p>',
     'Administrator login :' => 'Administrator login :',
     'Administrator password :' => 'Administrator password :',
@@ -19,6 +20,7 @@ return array(
     'Don\'t forget to delete the web/install directory.' => 'Don\'t forget to delete the web/install directory.',
     'English' => 'English',
     'French' => 'French',
+    'German' => 'German',
     'General information' => 'General information',
     'Go to back office' => 'Go to back office',
     'Host :' => 'Host :',
@@ -60,4 +62,9 @@ return array(
     'Cache directory has been cleared' => 'Cache directory has been cleared',
     'Cache directory has not been cleared. Please manually delete content of cache directory.' => 'Cache directory has not been cleared. Please manually delete content of cache directory.',
     'The update wizard directory will be removed' => 'The update wizard directory will be removed',
+    "Refresh" => 'Refresh',
+    'Published by OpenStudio' => 'Published by OpenStudio',
+    'Thelia support forum' => 'Thelia support forum',
+    'Thelia contributions' => 'Thelia contributions',
+    'Please wait ...' => 'Please wait ...'
 );

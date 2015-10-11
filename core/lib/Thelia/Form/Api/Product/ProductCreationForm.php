@@ -14,13 +14,12 @@ namespace Thelia\Form\Api\Product;
 
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\ProductCreationForm as BaseProductCreationForm;
-use Thelia\Form\ProductModificationForm;
 use Thelia\Form\StandardDescriptionFieldsTrait;
 
 /**
  * Class ProductCreateForm
  * @package Thelia\Form\Api\Product
- * @author manuel raynaud <manu@thelia.net>
+ * @author manuel raynaud <manu@raynaud.io>
  */
 class ProductCreationForm extends BaseProductCreationForm
 {

@@ -12,16 +12,16 @@
 
 namespace Thelia\Controller\Admin;
 
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Security\AccessManager;
-use Thelia\Form\SystemLogConfigurationForm;
+use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Log\Tlog;
 use Thelia\Model\ConfigQuery;
 
 /**
  * Class LangController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class SystemLogController extends BaseAdminController
 {
@@ -82,7 +82,7 @@ class SystemLogController extends BaseAdminController
         }
 
         // Hydrate the general configuration form
-        $systemLogForm = new SystemLogConfigurationForm($this->getRequest(), 'form', array(
+        $systemLogForm = $this->createForm(AdminForm::SYSTEM_LOG_CONFIGURATION, 'form', array(
             'level'             => ConfigQuery::read(Tlog::VAR_LEVEL, Tlog::DEFAULT_LEVEL),
             'format'            => ConfigQuery::read(Tlog::VAR_PREFIXE, Tlog::DEFAUT_PREFIXE),
             'show_redirections' => ConfigQuery::read(Tlog::VAR_SHOW_REDIRECT, Tlog::DEFAUT_SHOW_REDIRECT),
@@ -103,7 +103,7 @@ class SystemLogController extends BaseAdminController
 
         $error_msg = false;
 
-        $systemLogForm = new SystemLogConfigurationForm($this->getRequest());
+        $systemLogForm = $this->createForm(AdminForm::SYSTEM_LOG_CONFIGURATION);
 
         try {
             $form = $this->validateForm($systemLogForm);
@@ -138,7 +138,11 @@ class SystemLogController extends BaseAdminController
             // Update active destinations list
             ConfigQuery::write(Tlog::VAR_DESTINATIONS, implode(';', $active_destinations));
 
-            $this->adminLogAppend(AdminResources::SYSTEM_LOG, AccessManager::UPDATE, "System log configuration changed");
+            $this->adminLogAppend(
+                AdminResources::SYSTEM_LOG,
+                AccessManager::UPDATE,
+                "System log configuration changed"
+            );
 
             $response = $this->generateRedirectFromRoute('admin.configuration.system-logs.default');
         } catch (\Exception $ex) {

@@ -12,20 +12,19 @@
 
 namespace Thelia\Controller\Admin;
 
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Event\Customer\CustomerCreateOrUpdateEvent;
 use Thelia\Core\Event\Customer\CustomerEvent;
 use Thelia\Core\Event\TheliaEvents;
+use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Exception\CustomerException;
-use Thelia\Form\CustomerCreateForm;
-use Thelia\Form\CustomerUpdateForm;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Model\CustomerQuery;
 use Thelia\Tools\Password;
 
 /**
  * Class CustomerController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class CustomerController extends AbstractCrudController
 {
@@ -44,12 +43,12 @@ class CustomerController extends AbstractCrudController
 
     protected function getCreationForm()
     {
-        return new CustomerCreateForm($this->getRequest());
+        return $this->createForm(AdminForm::CUSTOMER_CREATE);
     }
 
     protected function getUpdateForm()
     {
-        return new CustomerUpdateForm($this->getRequest());
+        return $this->createForm(AdminForm::CUSTOMER_UPDATE);
     }
 
     protected function getCreationEvent($formData)
@@ -116,7 +115,7 @@ class CustomerController extends AbstractCrudController
         }
 
         // A loop is used in the template
-        return new CustomerUpdateForm($this->getRequest(), 'form', $data);
+        return $this->createForm(AdminForm::CUSTOMER_UPDATE, 'form', $data);
     }
 
     protected function getObjectFromEvent($event)
@@ -174,7 +173,8 @@ class CustomerController extends AbstractCrudController
     {
         return array(
                 'customer_id' => $this->getRequest()->get('customer_id', 0),
-                'page'        => $this->getRequest()->get('page', 1)
+                'page'        => $this->getRequest()->get('page', 1),
+                'page_order'  => $this->getRequest()->get('page_order', 1)
         );
     }
 

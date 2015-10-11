@@ -12,11 +12,11 @@
 
 namespace Thelia\Controller\Admin;
 
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Event\ShippingZone\ShippingZoneAddAreaEvent;
 use Thelia\Core\Event\ShippingZone\ShippingZoneRemoveAreaEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Form\ShippingZone\ShippingZoneAddArea;
 use Thelia\Form\ShippingZone\ShippingZoneRemoveArea;
@@ -24,7 +24,7 @@ use Thelia\Form\ShippingZone\ShippingZoneRemoveArea;
 /**
  * Class ShippingZoneController
  * @package Thelia\Controller\Admin
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class ShippingZoneController extends BaseAdminController
 {

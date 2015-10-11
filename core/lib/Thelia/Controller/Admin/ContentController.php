@@ -12,8 +12,6 @@
 
 namespace Thelia\Controller\Admin;
 
-use Thelia\Core\HttpFoundation\Response;
-use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Core\Event\Content\ContentAddFolderEvent;
 use Thelia\Core\Event\Content\ContentCreateEvent;
 use Thelia\Core\Event\Content\ContentDeleteEvent;
@@ -22,16 +20,17 @@ use Thelia\Core\Event\Content\ContentToggleVisibilityEvent;
 use Thelia\Core\Event\Content\ContentUpdateEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Event\UpdatePositionEvent;
+use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
-use Thelia\Form\ContentCreationForm;
-use Thelia\Form\ContentModificationForm;
+use Thelia\Core\Security\Resource\AdminResources;
+use Thelia\Form\Definition\AdminForm;
 use Thelia\Model\Content;
 use Thelia\Model\ContentQuery;
 
 /**
  * Class ContentController
  * @package Thelia\Controller\Admin
- * @author manuel raynaud <manu@thelia.net>
+ * @author manuel raynaud <manu@raynaud.io>
  */
 class ContentController extends AbstractSeoCrudController
 {
@@ -116,7 +115,7 @@ class ContentController extends AbstractSeoCrudController
      */
     protected function getCreationForm()
     {
-        return new ContentCreationForm($this->getRequest());
+        return $this->createForm(AdminForm::CONTENT_CREATION);
     }
 
     /**
@@ -124,7 +123,7 @@ class ContentController extends AbstractSeoCrudController
      */
     protected function getUpdateForm()
     {
-        return new ContentModificationForm($this->getRequest());
+        return $this->createForm(AdminForm::CONTENT_MODIFICATION);
     }
 
     /**
@@ -150,7 +149,7 @@ class ContentController extends AbstractSeoCrudController
         );
 
         // Setup the object form
-        return new ContentModificationForm($this->getRequest(), "form", $data);
+        return $this->createForm(AdminForm::CONTENT_MODIFICATION, "form", $data);
     }
 
     /**

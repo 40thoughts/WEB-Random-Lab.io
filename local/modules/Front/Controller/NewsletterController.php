@@ -27,24 +27,24 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\Event\Newsletter\NewsletterEvent;
 use Thelia\Core\Event\TheliaEvents;
-use Thelia\Form\NewsletterForm;
+use Thelia\Form\Definition\FrontForm;
 use Thelia\Log\Tlog;
+use Thelia\Model\Customer;
 
 /**
  * Class NewsletterController
  * @package Thelia\Controller\Front
- * @author Manuel Raynaud <manu@thelia.net>
+ * @author Manuel Raynaud <manu@raynaud.io>
  */
 class NewsletterController extends BaseFrontController
 {
-
     public function subscribeAction()
     {
         $errorMessage = false;
-        $newsletterForm = new NewsletterForm($this->getRequest());
+
+        $newsletterForm = $this->createForm(FrontForm::NEWSLETTER);
 
         try {
-
             $form = $this->validateForm($newsletterForm);
 
             $event = new NewsletterEvent(
@@ -52,51 +52,48 @@ class NewsletterController extends BaseFrontController
                 $this->getRequest()->getSession()->getLang()->getLocale()
             );
 
+            /** @var Customer $customer */
             if (null !== $customer = $this->getSecurityContext()->getCustomerUser()) {
-                $event->setFirstname($customer->getFirstname());
-                $event->setLastname($customer->getLastname());
+                $event
+                    ->setFirstname($customer->getFirstname())
+                    ->setLastname($customer->getLastname());
             } else {
-                $event->setFirstname($form->get('firstname')->getData());
-                $event->setLastname($form->get('lastname')->getData());
+                $event
+                    ->setFirstname($form->get('firstname')->getData())
+                    ->setLastname($form->get('lastname')->getData());
             }
 
             $this->dispatch(TheliaEvents::NEWSLETTER_SUBSCRIBE, $event);
 
+            // If a success URL is defined in the form, redirect to it, otherwise use the defaut view
+            if ($newsletterForm->hasSuccessUrl() && !$this->getRequest()->isXmlHttpRequest()) {
+                return $this->generateSuccessRedirect($newsletterForm);
+            }
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage();
 
             Tlog::getInstance()->error(sprintf('Error during newsletter subscription : %s', $errorMessage));
-        }
 
+            $newsletterForm->setErrorMessage($errorMessage);
+        }
 
         // If Ajax Request
         if ($this->getRequest()->isXmlHttpRequest()) {
-            $response = new JsonResponse();
-
-            if ($errorMessage) {
-                $response = $response->setContent(array(
-                    "success" => false,
-                    "message" => $errorMessage
-                ));
-            } else {
-                $response = $response->setContent(array(
-                    "success" => true,
-                    "message" => $this->getTranslator()->trans(
-                        "Thanks for signing up! We'll keep you posted whenever we have any new updates."
-                    )
-                ));
-            }
-
-            return $response;
-
-        } else {
-            $newsletterForm->setErrorMessage($errorMessage);
-
-            $this->getParserContext()
-                ->addForm($newsletterForm)
-                ->setGeneralError($errorMessage)
-            ;
+            return new JsonResponse([
+                "success" => ($errorMessage) ? false : true,
+                "message" => ($errorMessage) ? $errorMessage : $this->getTranslator()->trans(
+                    "Thanks for signing up! We'll keep you posted whenever we have any new updates."
+                )
+            ], ($errorMessage) ? 500 : 200);
         }
 
+        $this->getParserContext()
+            ->setGeneralError($errorMessage)
+            ->addForm($newsletterForm);
+
+        // If an error URL is defined in the form, redirect to it, otherwise use the defaut view
+        if ($errorMessage && $newsletterForm->hasErrorUrl()) {
+            return $this->generateErrorRedirect($newsletterForm);
+        }
     }
 }

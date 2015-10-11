@@ -20,7 +20,6 @@ use Thelia\Core\Security\Exception\AuthenticationException;
 use Thelia\Core\Security\Exception\AuthorizationException;
 use Thelia\Core\Template\ParserInterface;
 use Thelia\Core\Template\TemplateDefinition;
-use Thelia\Core\Template\TemplateHelper;
 use Thelia\Form\BaseForm;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Log\Tlog;
@@ -32,6 +31,8 @@ use Thelia\Tools\URL;
 
 class BaseAdminController extends BaseController
 {
+    const CONTROLLER_TYPE = 'admin';
+
     const TEMPLATE_404 = "404";
 
     /**
@@ -48,9 +49,17 @@ class BaseAdminController extends BaseController
      * @param string $action
      * @param string $message
      */
-    public function adminLogAppend($resource, $action, $message)
+    public function adminLogAppend($resource, $action, $message, $resourceId = null)
     {
-        AdminLog::append($resource, $action, $message, $this->getRequest(), $this->getSecurityContext()->getAdminUser());
+        AdminLog::append(
+            $resource,
+            $action,
+            $message,
+            $this->getRequest(),
+            $this->getSecurityContext()->getAdminUser(),
+            true,
+            $resourceId
+        );
     }
 
     /**
@@ -73,6 +82,14 @@ class BaseAdminController extends BaseController
         }
 
         return $this->pageNotFound();
+    }
+
+    /**
+     * @return string
+     */
+    public function getControllerType()
+    {
+        return self::CONTROLLER_TYPE;
     }
 
     /**
@@ -194,7 +211,7 @@ class BaseAdminController extends BaseController
 
         // Define the template that should be used
         $parser->setTemplateDefinition(
-            $template ?: TemplateHelper::getInstance()->getActiveAdminTemplate(),
+            $template ?: $this->getTemplateHelper()->getActiveAdminTemplate(),
             $this->useFallbackTemplate
         );
 
@@ -267,7 +284,7 @@ class BaseAdminController extends BaseController
     protected function getUrlLanguage($locale = null)
     {
         // Check if the functionality is activated
-        if (!ConfigQuery::read("one_domain_foreach_lang", false)) {
+        if (!ConfigQuery::isMultiDomainActivated()) {
             return null;
         }
 
